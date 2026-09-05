@@ -28,12 +28,24 @@ npm run dev
 # 浏览器访问：http://localhost:3000
 ```
 
-## 🐳 Docker 离线容器化运行
+## 🚀 部署与上线发布
+
+### 方案一：Vercel 一键云端发布（推荐）
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fanong8090%2Ffde)
+
+1. 将本仓库推送到 GitHub：`git push -u origin main`
+2. 登录 [Vercel](https://vercel.com/new)，选择导入 `anong8090/fde` 仓库；
+3. Framework 预设自动识别为 **Next.js**，直接点击 **Deploy** 按钮；
+4. 约 1 分钟即可生成全球加速的公网 HTTPS 访问域名（如 `https://fde-approval.vercel.app`）。
+
+### 方案二：Docker 容器化与独立服务器部署
 
 ```bash
-# 构建镜像
+# 1. 构建独立镜像
 docker build -t fde-demo .
 
-# 启动容器
-docker run -d -p 3000:3000 --name fde-demo-app fde-demo
+# 2. 启动容器生产服务
+docker run -d -p 3000:3000 --name fde-demo-app --restart always fde-demo
 ```
+
