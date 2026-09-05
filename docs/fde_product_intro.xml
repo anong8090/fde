@@ -1,0 +1,640 @@
+<title>FDE 国企智能审批合规审查系统 · 领导决策白皮书与业务全景介绍</title>
+
+<callout emoji="🏛️" background-color="light-blue" border-color="blue">
+  <p><b>【领导决策内参 · 2 分钟通览】核心定位与三项管理承诺：</b></p>
+  <p>1. <b>不换系统、不改流程、不增负担</b>：系统定位为既有 OA（泛微/致远）与 ERP 系统的<b>“外部智能审查协同副驾（AI Co-pilot）”</b>，纯旁路微服务挂接，经办人与领导无需改变原有工作习惯，零摩擦即插即用。</p>
+  <p>2. <b>AI 是助手而非裁判，审批权 100% 在领导手中</b>：AI 负责在毫秒内把几十页合同附件、单价值、增值税率与大额纪要“算清、查透、对标”，领导掌控最终裁量权，实现<b>“AI 初审算透事实、领导审定终局裁决”</b>。</p>
+  <p>3. <b>打造领导干部“履职尽责与免责”坚固护栏</b>：针对国企终身追责制与国资巡视巡察要求，系统全流程生成 SM2 国密防伪验签、时序节点树与带 ACK 回执单号的存证卡片，确保每笔签批依据充分、经得起历史检验。</p>
+</callout>
+
+<h1>一、传统审批模式瓶颈与 FDE 量化效益对比</h1>
+<p>在大型国有企业（粮食农垦、食品工业、高端制造等）日常经营流转中，合同签批与资金拨付是权力运行和廉洁风险防控的重中之重。然而，随着国资监管从“管企业”向“管资本”转变、“三重一大”前置审议要求全面深化，传统依靠肉眼核对的人工审查模式已逼近极限：</p>
+<ul>
+  <li><b>海量附件人工核算易产生疲劳盲区</b>：一份大宗原料采购合同往往随附数十页供货清单与资质文件，经办人与财务法务人员肉眼核算极易产生单价数量累加计算失误、税率账期不匹配等纰漏（如本次检出的 5 万元隐性差额与 4% 税率出入）。</li>
+  <li><b>制度条文繁杂冗长，靠人工记忆难以穷尽</b>：集团内部累计颁布现行管理规章数十部（如大额资金支付、直采直供细则、食品安全内控规范），审批人难以在短时间内逐条对标，极易遗漏党委会前置纪要文号或触碰强制性质量底线。</li>
+  <li><b>领导签批承担无限连带责任，急需坚实证据支撑</b>：面对“谁审批、谁负责”的刚性要求，分管领导批复时往往面临“不签耽误保供生产、签了担心踩雷问责”的两难境地，迫切需要一套客观、公正、可溯源的穿透式智能支撑系统。</li>
+</ul>
+
+<h2>1. 传统人工审批 vs FDE 智能协同效能对比表</h2>
+<table>
+  <thead>
+    <tr>
+      <th><p>评估维度</p></th>
+      <th><p>传统人工审查模式</p></th>
+      <th><p>FDE 智能协同系统赋能</p></th>
+      <th><p>对国企领导的管理赋能与价值</p></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><p><b>单笔合同核查时效</b></p></td>
+      <td><p>30 ～ 45 分钟（人工逐页翻阅附件与核算）</p></td>
+      <td><p><b>380 毫秒（全要素极速勾稽穿透）</b></p></td>
+      <td><p>大幅提效 98%，消除公文积压，保障生产与大宗采购保供时效。</p></td>
+    </tr>
+    <tr>
+      <td><p><b>勾稽计算与差额核验</b></p></td>
+      <td><p>肉眼比对，易产生 10%～15% 盲区漏检</p></td>
+      <td><p><b>100% 绝对精度（申报额 vs 附件乘积）</b></p></td>
+      <td><p>严防大额资金跑冒滴漏与阴阳合同，杜绝账实不符风险。</p></td>
+    </tr>
+    <tr>
+      <td><p><b>规章制度对标深度</b></p></td>
+      <td><p>依靠人员记忆与抽检，常漏前置纪要</p></td>
+      <td><p><b>实时向量穿透 11 部规章与国标条文</b></p></td>
+      <td><p>严格落实“三重一大”刚性约束与食品安全底线，防范巡视通报。</p></td>
+    </tr>
+    <tr>
+      <td><p><b>领导签批与履职免责</b></p></td>
+      <td><p>仅有纸质签名或简单“同意”，责任链模糊</p></td>
+      <td><p><b>SM2 国密防伪验签 + 时序节点树存证</b></p></td>
+      <td><p>形成不可篡改的完整履职链条，经得起离任审计与纪检巡视。</p></td>
+    </tr>
+    <tr>
+      <td><p><b>既有系统与组织成本</b></p></td>
+      <td><p>换系统动辄数百万元、全员数月重训</p></td>
+      <td><p><b>纯旁路模式，3 个工作日完成微服务接入</b></p></td>
+      <td><p>不换原有 OA/ERP，不改变员工习惯，保护既有 IT 投资。</p></td>
+    </tr>
+  </tbody>
+</table>
+
+<h1>二、零摩擦业务协同架构（不换系统、不改流程）</h1>
+<p>为彻底打消各级领导对“系统推倒重来、全员重新培训”的顾虑，FDE 采用微服务架构的<b>“外部 AI 协同中枢（Sidecar Architecture）”</b>设计。系统定位为 OA/ERP 的“智慧大脑外挂”，单据在原 OA 流转至分管领导节点时自动触发智能核验，审查结论即时回写，形成高可靠闭环：</p>
+
+<whiteboard type="svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="coreGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="blueAccent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <linearGradient id="cyanAccent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0d9488" />
+      <stop offset="100%" stop-color="#2dd4bf" />
+    </linearGradient>
+    <linearGradient id="amberAccent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#fbbf24" />
+    </linearGradient>
+  </defs>
+
+  <!-- Canvas Background -->
+  <rect x="0" y="0" width="960" height="620" rx="16" fill="url(#bgGrad)" stroke="#334155" stroke-width="1.5" />
+
+  <!-- Header Section -->
+  <text x="40" y="42" fill="#f8fafc" font-size="20" font-family="Noto Sans SC" font-weight="bold">FDE 国企智能审批合规审查系统 · 总体业务与协同架构全景图</text>
+  <text x="40" y="64" fill="#94a3b8" font-size="12" font-family="Noto Sans SC">定位：AI Co-pilot 外部协同中枢 ｜ 非侵入式接入 ｜ 要素交叉勾稽 ｜ 制度语义穿透 ｜ 毫秒级闭环回传</text>
+  <rect x="800" y="26" width="120" height="26" rx="13" fill="#0369a1" fill-opacity="0.3" stroke="#38bdf8" stroke-width="1"/>
+  <text x="860" y="43" fill="#38bdf8" font-size="11" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">商业生产级 v2.4</text>
+
+  <!-- Top Layer: 外部业务源协同接入层 -->
+  <g transform="translate(40, 85)">
+    <rect x="0" y="0" width="880" height="90" rx="10" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
+    <rect x="0" y="0" width="880" height="26" rx="10" fill="#1e293b" fill-opacity="0.8"/>
+    <text x="16" y="18" fill="#38bdf8" font-size="12" font-family="Noto Sans SC" font-weight="bold">【输入端】既有业务系统直连接入层 (External Business Systems)</text>
+
+    <!-- Source System 1 -->
+    <rect x="16" y="36" width="200" height="42" rx="6" fill="#0f172a" stroke="#475569" stroke-width="1" />
+    <text x="28" y="54" fill="#f1f5f9" font-size="12" font-family="Noto Sans SC" font-weight="bold">泛微 / 致远 OA 协同平台</text>
+    <text x="28" y="70" fill="#64748b" font-size="10" font-family="Noto Sans SC">呈批单报文 · 审批流程引擎</text>
+
+    <!-- Source System 2 -->
+    <rect x="232" y="36" width="200" height="42" rx="6" fill="#0f172a" stroke="#475569" stroke-width="1" />
+    <text x="244" y="54" fill="#f1f5f9" font-size="12" font-family="Noto Sans SC" font-weight="bold">ERP 供应链采购系统</text>
+    <text x="244" y="70" fill="#64748b" font-size="10" font-family="Noto Sans SC">招采比价 · 供方合同 · 履约单</text>
+
+    <!-- Source System 3 -->
+    <rect x="448" y="36" width="200" height="42" rx="6" fill="#0f172a" stroke="#475569" stroke-width="1" />
+    <text x="460" y="54" fill="#f1f5f9" font-size="12" font-family="Noto Sans SC" font-weight="bold">SAP 物资主数据中心</text>
+    <text x="460" y="70" fill="#64748b" font-size="10" font-family="Noto Sans SC">预算科目代码 · 供应商评级</text>
+
+    <!-- Source System 4 -->
+    <rect x="664" y="36" width="200" height="42" rx="6" fill="#0f172a" stroke="#475569" stroke-width="1" />
+    <text x="676" y="54" fill="#f1f5f9" font-size="12" font-family="Noto Sans SC" font-weight="bold">CFCA 国密电子认证</text>
+    <text x="676" y="70" fill="#64748b" font-size="10" font-family="Noto Sans SC">SM2 算法 · 数字证书 · 防伪验签</text>
+  </g>
+
+  <!-- Connecting Bus 1 -->
+  <g transform="translate(480, 175)">
+    <line x1="0" y1="0" x2="0" y2="25" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,4" />
+    <polygon points="-4,22 4,22 0,27" fill="#38bdf8" />
+    <rect x="-80" y="4" width="160" height="18" rx="9" fill="#0284c7" fill-opacity="0.2" stroke="#0284c7" stroke-width="0.8"/>
+    <text x="0" y="16" fill="#7dd3fc" font-size="10" font-family="Noto Sans SC" text-anchor="middle">Webhook 报文推送 &amp; 随附原件</text>
+  </g>
+
+  <!-- Middle Layer: FDE 智能审查协同中枢 -->
+  <g transform="translate(40, 202)">
+    <rect x="0" y="0" width="880" height="240" rx="10" fill="url(#coreGrad)" stroke="#38bdf8" stroke-width="1.5" />
+    <rect x="0" y="0" width="880" height="28" rx="10" fill="#0f172a" fill-opacity="0.9"/>
+    <text x="16" y="19" fill="#38bdf8" font-size="13" font-family="Noto Sans SC" font-weight="bold">【计算端】FDE 智能合规审查与协同研判中枢 (AI Intelligence Core)</text>
+
+    <!-- Sub-module 1: 接入与多模态解析 -->
+    <g transform="translate(16, 38)">
+      <rect x="0" y="0" width="230" height="190" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1" />
+      <rect x="0" y="0" width="230" height="24" rx="8" fill="#1e293b"/>
+      <text x="12" y="16" fill="#cbd5e1" font-size="11" font-family="Noto Sans SC" font-weight="bold">1. 接入与多模态版面解析</text>
+      
+      <rect x="10" y="32" width="210" height="34" rx="4" fill="#1e293b" fill-opacity="0.5"/>
+      <text x="18" y="47" fill="#f8fafc" font-size="10" font-family="Noto Sans SC" font-weight="bold">OpenAPI / Webhook 监听适配器</text>
+      <text x="18" y="60" fill="#64748b" font-size="9" font-family="Noto Sans SC">24项核心要素 Schema 验签与清洗</text>
+
+      <rect x="10" y="72" width="210" height="34" rx="4" fill="#1e293b" fill-opacity="0.5"/>
+      <text x="18" y="87" fill="#f8fafc" font-size="10" font-family="Noto Sans SC" font-weight="bold">多模态版面切分与 OCR 引擎</text>
+      <text x="18" y="100" fill="#64748b" font-size="9" font-family="Noto Sans SC">合同正文、明细表、补充协议切分</text>
+
+      <rect x="10" y="112" width="210" height="34" rx="4" fill="#1e293b" fill-opacity="0.5"/>
+      <text x="18" y="127" fill="#f8fafc" font-size="10" font-family="Noto Sans SC" font-weight="bold">标的与商务条款 NER 抽取</text>
+      <text x="18" y="140" fill="#64748b" font-size="9" font-family="Noto Sans SC">单价数量乘积、发票税率、管辖约定</text>
+
+      <rect x="10" y="152" width="210" height="28" rx="4" fill="#065f46" fill-opacity="0.3" stroke="#10b981" stroke-width="0.8"/>
+      <text x="18" y="170" fill="#34d399" font-size="10" font-family="Noto Sans SC">✓ 10 项核心审查要素标准化网格</text>
+    </g>
+
+    <!-- Sub-module 2: AI 核心审查与研判大脑 -->
+    <g transform="translate(262, 38)">
+      <rect x="0" y="0" width="356" height="190" rx="8" fill="#0f172a" stroke="#3b82f6" stroke-width="1.2" />
+      <rect x="0" y="0" width="356" height="24" rx="8" fill="#1e3a8a" fill-opacity="0.5"/>
+      <text x="12" y="16" fill="#93c5fd" font-size="11" font-family="Noto Sans SC" font-weight="bold">2. 核心智能审查与研判大脑 (Core Reasoner)</text>
+
+      <!-- Engine 1 -->
+      <rect x="10" y="32" width="336" height="42" rx="4" fill="#1e293b" fill-opacity="0.7" stroke="#475569" stroke-width="0.8"/>
+      <text x="18" y="49" fill="#38bdf8" font-size="11" font-family="Noto Sans SC" font-weight="bold">要素双向交叉勾稽核验引擎 (Cross-Check Engine)</text>
+      <text x="18" y="65" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">申报总额 ¥120万 vs 附件明细累加 ¥115万 自动差额碰撞 · 税率条款比对</text>
+
+      <!-- Engine 2 -->
+      <rect x="10" y="80" width="336" height="42" rx="4" fill="#1e293b" fill-opacity="0.7" stroke="#475569" stroke-width="0.8"/>
+      <text x="18" y="97" fill="#fbbf24" font-size="11" font-family="Noto Sans SC" font-weight="bold">现行规章与国标向量对标检索 (RAG Grounding)</text>
+      <text x="18" y="113" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">对标 11 部国企制度 · 锁定《大额资金办法》第14条/21条 · 穿透条文溯源</text>
+
+      <!-- Engine 3 -->
+      <rect x="10" y="128" width="336" height="48" rx="4" fill="#1e293b" fill-opacity="0.7" stroke="#475569" stroke-width="0.8"/>
+      <text x="18" y="145" fill="#34d399" font-size="11" font-family="Noto Sans SC" font-weight="bold">综合合规研判与处置策略大模型 (Decision Matrix)</text>
+      <text x="18" y="161" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">三级风险矩阵：合规免检极速放行 ｜ 瑕疵退回补正 ｜ 致命冲突坚决否决</text>
+      <text x="18" y="171" fill="#64748b" font-size="8.5" font-family="Noto Sans SC">兼顾食品生产保供时效 · 自动生成标准化合规审查报告与批注建议</text>
+    </g>
+
+    <!-- Sub-module 3: 审批决策与闭环回写 -->
+    <g transform="translate(634, 38)">
+      <rect x="0" y="0" width="230" height="190" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1" />
+      <rect x="0" y="0" width="230" height="24" rx="8" fill="#1e293b"/>
+      <text x="12" y="16" fill="#cbd5e1" font-size="11" font-family="Noto Sans SC" font-weight="bold">3. 专属决策与回写闭环</text>
+
+      <rect x="10" y="32" width="210" height="34" rx="4" fill="#1e293b" fill-opacity="0.5"/>
+      <text x="18" y="47" fill="#f8fafc" font-size="10" font-family="Noto Sans SC" font-weight="bold">分管领导专属工作台</text>
+      <text x="18" y="60" fill="#64748b" font-size="9" font-family="Noto Sans SC">赵志远（分管副总经理）专属责任核验</text>
+
+      <rect x="10" y="72" width="210" height="34" rx="4" fill="#1e293b" fill-opacity="0.5"/>
+      <text x="18" y="87" fill="#f8fafc" font-size="10" font-family="Noto Sans SC" font-weight="bold">规范批语模板一键装配</text>
+      <text x="18" y="100" fill="#64748b" font-size="9" font-family="Noto Sans SC">一键引用系统建议 / 同意 / 退回 / 否决模板</text>
+
+      <rect x="10" y="112" width="210" height="34" rx="4" fill="#1e293b" fill-opacity="0.5"/>
+      <text x="18" y="127" fill="#f8fafc" font-size="10" font-family="Noto Sans SC" font-weight="bold">SM2 国密电子证书验签</text>
+      <text x="18" y="140" fill="#64748b" font-size="9" font-family="Noto Sans SC">履职尽责确认 · 防抵赖签名防伪哈希</text>
+
+      <rect x="10" y="152" width="210" height="28" rx="4" fill="#1e3a8a" fill-opacity="0.4" stroke="#3b82f6" stroke-width="0.8"/>
+      <text x="18" y="170" fill="#60a5fa" font-size="10" font-family="Noto Sans SC">✓ Webhook 即时回写原业务系统</text>
+    </g>
+  </g>
+
+  <!-- Connecting Bus 2 -->
+  <g transform="translate(480, 442)">
+    <line x1="0" y1="0" x2="0" y2="25" stroke="#10b981" stroke-width="2" stroke-dasharray="4,4" />
+    <polygon points="-4,22 4,22 0,27" fill="#10b981" />
+    <rect x="-80" y="4" width="160" height="18" rx="9" fill="#059669" fill-opacity="0.2" stroke="#059669" stroke-width="0.8"/>
+    <text x="0" y="16" fill="#6ee7b7" font-size="10" font-family="Noto Sans SC" text-anchor="middle">不可篡改证据链沉淀 &amp; 存证</text>
+  </g>
+
+  <!-- Bottom Layer: 审计存证与内控合规资产层 -->
+  <g transform="translate(40, 469)">
+    <rect x="0" y="0" width="880" height="120" rx="10" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
+    <rect x="0" y="0" width="880" height="26" rx="10" fill="#1e293b" fill-opacity="0.8"/>
+    <text x="16" y="18" fill="#10b981" font-size="12" font-family="Noto Sans SC" font-weight="bold">【沉淀端】审计存证与内控合规资产中心 (Audit, Tracing &amp; Compliance Assets)</text>
+
+    <!-- Asset 1 -->
+    <rect x="16" y="36" width="200" height="72" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1" />
+    <text x="28" y="55" fill="#38bdf8" font-size="11" font-family="Noto Sans SC" font-weight="bold">标准化时序节点树审计日志</text>
+    <text x="28" y="72" fill="#94a3b8" font-size="9.5" font-family="Noto Sans SC">6 大时序节点分支 · 380ms</text>
+    <text x="28" y="88" fill="#64748b" font-size="9" font-family="Noto Sans SC">满足国企纪检与信创追溯</text>
+
+    <!-- Asset 2 -->
+    <rect x="232" y="36" width="200" height="72" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1" />
+    <text x="244" y="55" fill="#fbbf24" font-size="11" font-family="Noto Sans SC" font-weight="bold">现行 11 部规章标准知识库</text>
+    <text x="244" y="72" fill="#94a3b8" font-size="9.5" font-family="Noto Sans SC">大额资金 / 食品安全 / 直采细则</text>
+    <text x="244" y="88" fill="#64748b" font-size="9" font-family="Noto Sans SC">向量切片 · 条文精准召回溯源</text>
+
+    <!-- Asset 3 -->
+    <rect x="448" y="36" width="200" height="72" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1" />
+    <text x="460" y="55" fill="#34d399" font-size="11" font-family="Noto Sans SC" font-weight="bold">不可篡改全要素审批台账</text>
+    <text x="460" y="72" fill="#94a3b8" font-size="9.5" font-family="Noto Sans SC">全量单据沉淀 · ACK 回执单号</text>
+    <text x="460" y="88" fill="#64748b" font-size="9" font-family="Noto Sans SC">电子印章存证 · 多维检索过滤</text>
+
+    <!-- Asset 4 -->
+    <rect x="664" y="36" width="200" height="72" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1" />
+    <text x="676" y="55" fill="#c084fc" font-size="11" font-family="Noto Sans SC" font-weight="bold">红头公文审查意见书导出</text>
+    <text x="676" y="72" fill="#94a3b8" font-size="9.5" font-family="Noto Sans SC">中润农垦发文公文规范格式</text>
+    <text x="676" y="88" fill="#64748b" font-size="9" font-family="Noto Sans SC">一键生成 · 随付存档备查</text>
+  </g>
+</svg>
+</whiteboard>
+
+<h2>1. 协同架构四大层级管理闭环</h2>
+<ul>
+  <li><b>既有业务接入层 (Input)</b>：无需改造既有业务系统数据库，通过 Webhook/OpenAPI 标准接口实时接收泛微 OA、致远协同或 ERP 供应链推送的呈批报文及 PDF 扫描原件，经 Schema 严密验签后接入。</li>
+  <li><b>多模态版面解析层 (Parser)</b>：针对国企合同非结构化扫描件，依托本地化 OCR 引擎与版面切分算法，快速还原供货清单单价、数量、税率与履约期限，提炼形成<b>「10 项核心审查要素」三列高密度规范网格</b>。</li>
+  <li><b>AI 核心智能审查大脑 (Engine)</b>：具备双向交叉勾稽、现行规章向量对标 (RAG) 与综合研判三大引擎。针对申报金额、税率、账期与 11 部现行规章进行多维立体碰撞，实现毫秒级条文精准穿透。</li>
+  <li><b>专属决策与闭环回写 (Output)</b>：分管领导专属工作台支持一键调用规范批语模板，完成履职尽责确认后通过 SM2 国密算法电子签名，并通过 Webhook 回写 OA 系统（HTTP 200 OK），生成带防伪印章的 ACK 回执凭单。</li>
+</ul>
+
+<h1>三、业务流转链路与智能研判三级分流</h1>
+<p>系统业务流转严格兼顾<b>“内控合规严肃性”</b>与<b>“国企生产保供时效性”</b>，建立起科学的分级分类处理机制：</p>
+
+<whiteboard type="svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="100%" height="100%">
+  <defs>
+    <linearGradient id="flowBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1120" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="stepGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="960" height="420" rx="16" fill="url(#flowBg)" stroke="#334155" stroke-width="1.5" />
+
+  <!-- Header -->
+  <text x="40" y="38" fill="#f8fafc" font-size="18" font-family="Noto Sans SC" font-weight="bold">FDE 核心业务全生命周期闭环流转链路</text>
+  <text x="40" y="58" fill="#94a3b8" font-size="11" font-family="Noto Sans SC">从业务推送发起、OCR 要素抽取、双向交叉碰撞、制度对标、三级研判分流，到领导核验与 Webhook 闭环回写</text>
+
+  <!-- Flow Line Container -->
+  <!-- Step 1: 业务单据推送 -->
+  <g transform="translate(35, 85)">
+    <rect x="0" y="0" width="155" height="120" rx="8" fill="url(#stepGrad)" stroke="#38bdf8" stroke-width="1.2" />
+    <circle cx="20" cy="20" r="11" fill="#0284c7" />
+    <text x="20" y="24" fill="#ffffff" font-size="11" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">1</text>
+    <text x="38" y="24" fill="#38bdf8" font-size="12" font-family="Noto Sans SC" font-weight="bold">业务单据推送</text>
+    <text x="14" y="50" fill="#e2e8f0" font-size="10" font-family="Noto Sans SC" font-weight="bold">OA / ERP 触发推送</text>
+    <text x="14" y="66" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">• 24 项结构化表单要素</text>
+    <text x="14" y="80" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">• 随附 PDF 原件扫描件</text>
+    <text x="14" y="94" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">• Webhook 鉴权验签</text>
+    <rect x="14" y="102" width="60" height="12" rx="3" fill="#0369a1" fill-opacity="0.4"/>
+    <text x="44" y="111" fill="#7dd3fc" font-size="8" font-family="Noto Sans SC" text-anchor="middle">耗时约 32ms</text>
+  </g>
+
+  <!-- Arrow 1 -->
+  <path d="M 195 145 L 215 145" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)" />
+  <polygon points="215,145 208,141 208,149" fill="#38bdf8" />
+
+  <!-- Step 2: 多模态 OCR 抽取 -->
+  <g transform="translate(220, 85)">
+    <rect x="0" y="0" width="155" height="120" rx="8" fill="url(#stepGrad)" stroke="#0d9488" stroke-width="1.2" />
+    <circle cx="20" cy="20" r="11" fill="#0d9488" />
+    <text x="20" y="24" fill="#ffffff" font-size="11" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">2</text>
+    <text x="38" y="24" fill="#2dd4bf" font-size="12" font-family="Noto Sans SC" font-weight="bold">多模态解析抽取</text>
+    <text x="14" y="50" fill="#e2e8f0" font-size="10" font-family="Noto Sans SC" font-weight="bold">OCR &amp; 核心要素提炼</text>
+    <text x="14" y="66" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">• 提炼 10 项核心网格</text>
+    <text x="14" y="80" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">• 附件清单单价乘积还原</text>
+    <text x="14" y="94" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">• 质检与法律条款识别</text>
+    <rect x="14" y="102" width="60" height="12" rx="3" fill="#0f766e" fill-opacity="0.4"/>
+    <text x="44" y="111" fill="#5eead4" font-size="8" font-family="Noto Sans SC" text-anchor="middle">耗时约 176ms</text>
+  </g>
+
+  <!-- Arrow 2 -->
+  <path d="M 380 145 L 400 145" stroke="#2dd4bf" stroke-width="2" />
+  <polygon points="400,145 393,141 393,149" fill="#2dd4bf" />
+
+  <!-- Step 3: 交叉勾稽与制度对标 -->
+  <g transform="translate(405, 85)">
+    <rect x="0" y="0" width="165" height="120" rx="8" fill="url(#stepGrad)" stroke="#f59e0b" stroke-width="1.2" />
+    <circle cx="20" cy="20" r="11" fill="#d97706" />
+    <text x="20" y="24" fill="#ffffff" font-size="11" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">3</text>
+    <text x="38" y="24" fill="#fbbf24" font-size="12" font-family="Noto Sans SC" font-weight="bold">立体交叉勾稽碰撞</text>
+    <text x="14" y="50" fill="#e2e8f0" font-size="10" font-family="Noto Sans SC" font-weight="bold">双向比对 &amp; 向量对标</text>
+    <text x="14" y="66" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">• 申报额 vs 附件累加校验</text>
+    <text x="14" y="80" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">• 税率/账期/管辖地比对</text>
+    <text x="14" y="94" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">• 对标 11 部国企制度条文</text>
+    <rect x="14" y="102" width="60" height="12" rx="3" fill="#b45309" fill-opacity="0.4"/>
+    <text x="44" y="111" fill="#fcd34d" font-size="8" font-family="Noto Sans SC" text-anchor="middle">耗时约 122ms</text>
+  </g>
+
+  <!-- Arrow 3 -->
+  <path d="M 575 145 L 595 145" stroke="#fbbf24" stroke-width="2" />
+  <polygon points="595,145 588,141 588,149" fill="#fbbf24" />
+
+  <!-- Step 4: 综合研判三级分流 -->
+  <g transform="translate(600, 70)">
+    <rect x="0" y="0" width="165" height="150" rx="8" fill="url(#stepGrad)" stroke="#818cf8" stroke-width="1.2" />
+    <circle cx="20" cy="18" r="11" fill="#4f46e5" />
+    <text x="20" y="22" fill="#ffffff" font-size="11" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">4</text>
+    <text x="38" y="22" fill="#a5b4fc" font-size="12" font-family="Noto Sans SC" font-weight="bold">智能研判三级分流</text>
+
+    <!-- Branch A: 合规免检 -->
+    <rect x="10" y="34" width="145" height="30" rx="4" fill="#065f46" fill-opacity="0.4" stroke="#10b981" stroke-width="0.8"/>
+    <text x="16" y="48" fill="#34d399" font-size="9.5" font-family="Noto Sans SC" font-weight="bold">① 合规免检极速放行</text>
+    <text x="16" y="59" fill="#a7f3d0" font-size="8" font-family="Noto Sans SC">全要素一致 · 免招标达标</text>
+
+    <!-- Branch B: 瑕疵存疑 -->
+    <rect x="10" y="70" width="145" height="30" rx="4" fill="#78350f" fill-opacity="0.4" stroke="#f59e0b" stroke-width="0.8"/>
+    <text x="16" y="84" fill="#fbbf24" font-size="9.5" font-family="Noto Sans SC" font-weight="bold">② 要素存疑退回补正</text>
+    <text x="16" y="95" fill="#fde68a" font-size="8" font-family="Noto Sans SC">存在差额 · 缺三重一大纪要</text>
+
+    <!-- Branch C: 致命违规 -->
+    <rect x="10" y="106" width="145" height="30" rx="4" fill="#7f1d1d" fill-opacity="0.4" stroke="#ef4444" stroke-width="0.8"/>
+    <text x="16" y="120" fill="#f87171" font-size="9.5" font-family="Noto Sans SC" font-weight="bold">③ 违背底线坚决否决</text>
+    <text x="16" y="131" fill="#fecaca" font-size="8" font-family="Noto Sans SC">合格率冲突 · 免第三方报告</text>
+  </g>
+
+  <!-- Arrow 4 -->
+  <path d="M 770 145 L 790 145" stroke="#a5b4fc" stroke-width="2" />
+  <polygon points="790,145 783,141 783,149" fill="#a5b4fc" />
+
+  <!-- Step 5: 分管领导专属签批 -->
+  <g transform="translate(795, 85)">
+    <rect x="0" y="0" width="135" height="120" rx="8" fill="url(#stepGrad)" stroke="#c084fc" stroke-width="1.2" />
+    <circle cx="18" cy="20" r="11" fill="#7e22ce" />
+    <text x="18" y="24" fill="#ffffff" font-size="11" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">5</text>
+    <text x="36" y="24" fill="#e9d5ff" font-size="11" font-family="Noto Sans SC" font-weight="bold">领导审签决策</text>
+    <text x="12" y="50" fill="#f8fafc" font-size="9.5" font-family="Noto Sans SC" font-weight="bold">赵志远 (副总)</text>
+    <text x="12" y="66" fill="#94a3b8" font-size="8.5" font-family="Noto Sans SC">• 一键引用批注模板</text>
+    <text x="12" y="80" fill="#94a3b8" font-size="8.5" font-family="Noto Sans SC">• 履职尽责确认勾选</text>
+    <text x="12" y="94" fill="#94a3b8" font-size="8.5" font-family="Noto Sans SC">• SM2 国密防伪签名</text>
+    <rect x="12" y="102" width="60" height="12" rx="3" fill="#6b21a8" fill-opacity="0.4"/>
+    <text x="42" y="111" fill="#d8b4fe" font-size="8" font-family="Noto Sans SC" text-anchor="middle">人机协同终审</text>
+  </g>
+
+  <!-- Return Flow: Step 6: 闭环回传业务系统 -->
+  <g transform="translate(80, 260)">
+    <rect x="0" y="0" width="800" height="120" rx="10" fill="#0f172a" stroke="#10b981" stroke-width="1.5" />
+    <rect x="0" y="0" width="800" height="26" rx="10" fill="#064e3b" fill-opacity="0.6"/>
+    <text x="16" y="18" fill="#34d399" font-size="12" font-family="Noto Sans SC" font-weight="bold">【输出端】Step 6: 审批意见即时回传业务系统 &amp; 存证闭环 (Closed-loop Callback)</text>
+
+    <!-- Sub 1 -->
+    <rect x="16" y="38" width="240" height="68" rx="6" fill="#1e293b" stroke="#334155" stroke-width="0.8"/>
+    <text x="26" y="56" fill="#f8fafc" font-size="11" font-family="Noto Sans SC" font-weight="bold">Webhook 异步回写 (HTTP 200 OK)</text>
+    <text x="26" y="74" fill="#94a3b8" font-size="9.5" font-family="Noto Sans SC">回写泛微 OA / ERP 待办流转状态</text>
+    <text x="26" y="90" fill="#64748b" font-size="9" font-family="Noto Sans SC">带入分管领导规范批语与决议代码</text>
+
+    <!-- Sub 2 -->
+    <rect x="276" y="38" width="240" height="68" rx="6" fill="#1e293b" stroke="#334155" stroke-width="0.8"/>
+    <text x="286" y="56" fill="#38bdf8" font-size="11" font-family="Noto Sans SC" font-weight="bold">回执单号与防伪印章生成</text>
+    <text x="286" y="74" fill="#94a3b8" font-size="9.5" font-family="Noto Sans SC">ACK-OA-20260905-XXXXXX 回执</text>
+    <text x="286" y="90" fill="#64748b" font-size="9" font-family="Noto Sans SC">中润农垦「已签署·合同复批专用」电子印戳</text>
+
+    <!-- Sub 3 -->
+    <rect x="536" y="38" width="248" height="68" rx="6" fill="#1e293b" stroke="#334155" stroke-width="0.8"/>
+    <text x="546" y="56" fill="#fbbf24" font-size="11" font-family="Noto Sans SC" font-weight="bold">全生命周期时序审计台账固化</text>
+    <text x="546" y="74" fill="#94a3b8" font-size="9.5" font-family="Noto Sans SC">沉淀 6 大时序节点 · 毫秒级推演溯源</text>
+    <text x="546" y="90" fill="#64748b" font-size="9" font-family="Noto Sans SC">支持纪检监察穿透巡检与红头公文导出</text>
+  </g>
+
+  <!-- Big Curved Connecting Arrow from Step 5 to Step 6 -->
+  <path d="M 862 210 L 862 235 Q 862 250 847 250 L 780 250 L 500 250" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4,4"/>
+  <polygon points="500,250 507,246 507,254" fill="#10b981" />
+</svg>
+</whiteboard>
+
+<h2>1. 智能审查三级研判与领导决策分流机制</h2>
+<table>
+  <thead>
+    <tr>
+      <th><p>研判等级</p></th>
+      <th><p>触发场景与特征判定</p></th>
+      <th><p>AI 诊断结论与建议批语</p></th>
+      <th><p>领导签批决策导向</p></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><p><b>① 合规免检极速放行（绿色通道）</b></p></td>
+      <td><p>表单要素与附件清单完全勾稽一致；供方为年度 A 级合格供方目录；单笔金额符合免公开招标标准。</p></td>
+      <td><p><b>【合规符合放行】</b><br/>要素完全匹配，入围年度合格名录，符合免公开招标标准，建议快速放行。</p></td>
+      <td><p><b>支持快速批准</b>：消除不必要的行政审批延误，全力保障大宗生产原料与果蔬鲜活冷链保供时效。</p></td>
+    </tr>
+    <tr>
+      <td><p><b>② 要素存疑退回补正（黄色预警）</b></p></td>
+      <td><p>申报总额与附件清单存在计算差额（如 5 万元差额）；或金额超 100 万元未附党委会“三重一大”前置纪要文号。</p></td>
+      <td><p><b>【要素存疑退回补正】</b><br/>呈批单金额与附件存在勾稽差额，大额资金缺少前置纪要，经办人补充修正后可正常通过。</p></td>
+      <td><p><b>指示补正材料</b>：既不盲目放行引发合规隐患，也不粗暴否决耽误生产，明确指示经办人补齐前置要件后复审。</p></td>
+    </tr>
+    <tr>
+      <td><p><b>③ 严重违规坚决否决（红色阻断）</b></p></td>
+      <td><p>合同约定技术指标违背强制标准（如 95% 出厂合格率违背集团 99.8% 底线）；或私自免除第三方 CMA 检验报告。</p></td>
+      <td><p><b>【致命合规违规拦截】</b><br/>严重违背集团食品质量安全红线，存在重大产品安全隐患与法律风险，建议直接坚决否决。</p></td>
+      <td><p><b>行使一票否决权</b>：筑牢食品安全与法律风险防火墙，坚决阻断劣质原料进厂，保护企业与领导个人免受追责。</p></td>
+    </tr>
+  </tbody>
+</table>
+
+<h1>四、毫秒级时序节点树与纪检监察审计穿透</h1>
+<p>国企反腐倡廉与合规治理强调<b>“过程可回溯、数据可核验、责任可界定”</b>。FDE 将每一次审查过程固化为标准的<b>“时序节点树（Timeline Node Tree）”</b>，形成经得起信创审计与纪检巡视的数字化证据链：</p>
+
+<whiteboard type="svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 460" width="100%" height="100%">
+  <defs>
+    <linearGradient id="auditBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#090d16" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="960" height="460" rx="16" fill="url(#auditBg)" stroke="#334155" stroke-width="1.5" />
+
+  <!-- Top Audit Dashboard Header -->
+  <g transform="translate(35, 25)">
+    <text x="0" y="18" fill="#f8fafc" font-size="16" font-family="Noto Sans SC" font-weight="bold">合同智能审查审计推演日志 (Audit Timeline Trace)</text>
+    <text x="440" y="17" fill="#64748b" font-size="10" font-family="Noto Sans SC">流水任务号：AUDIT-TRACE-REQ-202609-001 ｜ 引擎版本：中润信创大模型审查引擎 v2.4</text>
+
+    <!-- Metric Cards -->
+    <g transform="translate(0, 32)">
+      <rect x="0" y="0" width="205" height="50" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="0.8"/>
+      <text x="14" y="20" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">审查分析全流程耗时</text>
+      <text x="14" y="40" fill="#38bdf8" font-size="18" font-family="Noto Sans SC" font-weight="bold">380 <tspan font-size="11" fill="#94a3b8">ms</tspan></text>
+      <text x="95" y="38" fill="#64748b" font-size="8.5" font-family="Noto Sans SC">秒级完成24项深度碰撞</text>
+    </g>
+
+    <g transform="translate(225, 32)">
+      <rect x="0" y="0" width="205" height="50" rx="6" fill="#1e293b" stroke="#334155" stroke-width="0.8"/>
+      <text x="14" y="20" fill="#94a3b8" font-size="9" font-family="Noto Sans SC">对标现行规章制度</text>
+      <text x="14" y="40" fill="#f1f5f9" font-size="18" font-family="Noto Sans SC" font-weight="bold">11 <tspan font-size="11" fill="#94a3b8">部</tspan></text>
+      <text x="80" y="38" fill="#64748b" font-size="8.5" font-family="Noto Sans SC">制度库向量条文索引</text>
+    </g>
+
+    <g transform="translate(450, 32)">
+      <rect x="0" y="0" width="205" height="50" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="0.8"/>
+      <text x="14" y="20" fill="#fbbf24" font-size="9" font-family="Noto Sans SC">检出合规风险与瑕疵</text>
+      <text x="14" y="40" fill="#f59e0b" font-size="18" font-family="Noto Sans SC" font-weight="bold">2 <tspan font-size="11" fill="#94a3b8">项</tspan></text>
+      <text x="65" y="38" fill="#64748b" font-size="8.5" font-family="Noto Sans SC">精准匹配具体条文罚则</text>
+    </g>
+
+    <g transform="translate(675, 32)">
+      <rect x="0" y="0" width="215" height="50" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="0.8"/>
+      <text x="14" y="20" fill="#34d399" font-size="9" font-family="Noto Sans SC">证据链置信度</text>
+      <text x="14" y="40" fill="#10b981" font-size="18" font-family="Noto Sans SC" font-weight="bold">98.8 <tspan font-size="11" fill="#94a3b8">%</tspan></text>
+      <text x="100" y="38" fill="#64748b" font-size="8.5" font-family="Noto Sans SC">条文与事实源逐一印证</text>
+    </g>
+  </g>
+
+  <!-- Timeline Vertical Backbone -->
+  <line x1="60" y1="125" x2="60" y2="430" stroke="#334155" stroke-width="2" />
+
+  <!-- Node 1.0 -->
+  <g transform="translate(48, 125)">
+    <circle cx="12" cy="12" r="10" fill="#065f46" stroke="#10b981" stroke-width="2"/>
+    <text x="12" y="16" fill="#ffffff" font-size="10" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">1</text>
+    <rect x="35" y="0" width="840" height="38" rx="6" fill="#1e293b" stroke="#334155" stroke-width="0.8"/>
+    <text x="48" y="16" fill="#f8fafc" font-size="11" font-family="Noto Sans SC" font-weight="bold">1.0 业务来源单据接入与要素解析</text>
+    <text x="260" y="16" fill="#94a3b8" font-size="9.5" font-family="Noto Sans SC">泛微 OA Webhook 推送报文校验通过 ｜ 抽取 24 项业务要素，自动标记大额资金监管</text>
+    <rect x="740" y="9" width="120" height="20" rx="4" fill="#064e3b" fill-opacity="0.4"/>
+    <text x="800" y="23" fill="#34d399" font-size="9.5" font-family="Noto Sans SC" text-anchor="middle">PASS · 32ms</text>
+  </g>
+
+  <!-- Node 2.0 -->
+  <g transform="translate(48, 175)">
+    <circle cx="12" cy="12" r="10" fill="#065f46" stroke="#10b981" stroke-width="2"/>
+    <text x="12" y="16" fill="#ffffff" font-size="10" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">2</text>
+    <rect x="35" y="0" width="840" height="38" rx="6" fill="#1e293b" stroke="#334155" stroke-width="0.8"/>
+    <text x="48" y="16" fill="#f8fafc" font-size="11" font-family="Noto Sans SC" font-weight="bold">2.0 随附原件文档解析与多模态实体抽取</text>
+    <text x="280" y="16" fill="#94a3b8" font-size="9.5" font-family="Noto Sans SC">对随附合同正本及明细表 OCR 识别 ｜ 抽取供货清单累加金额、税率条款及管辖机构</text>
+    <rect x="740" y="9" width="120" height="20" rx="4" fill="#064e3b" fill-opacity="0.4"/>
+    <text x="800" y="23" fill="#34d399" font-size="9.5" font-family="Noto Sans SC" text-anchor="middle">PASS · 176ms</text>
+  </g>
+
+  <!-- Node 3.0 -->
+  <g transform="translate(48, 225)">
+    <circle cx="12" cy="12" r="10" fill="#78350f" stroke="#f59e0b" stroke-width="2"/>
+    <text x="12" y="16" fill="#ffffff" font-size="10" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">3</text>
+    <rect x="35" y="0" width="840" height="46" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1"/>
+    <text x="48" y="16" fill="#fbbf24" font-size="11" font-family="Noto Sans SC" font-weight="bold">3.0 单据要素与原件内容双向交叉勾稽核验</text>
+    <text x="48" y="34" fill="#ef4444" font-size="10" font-family="Noto Sans SC" font-weight="bold">⚠️ 检出差额：单据申报 ¥1,200,000 元 vs 附件清单明细累计 ¥1,150,000 元，检出未列明差额 ¥50,000 元！</text>
+    <rect x="740" y="13" width="120" height="20" rx="4" fill="#78350f" fill-opacity="0.4"/>
+    <text x="800" y="27" fill="#fbbf24" font-size="9.5" font-family="Noto Sans SC" text-anchor="middle">WARN · 68ms</text>
+  </g>
+
+  <!-- Node 4.0 -->
+  <g transform="translate(48, 283)">
+    <circle cx="12" cy="12" r="10" fill="#065f46" stroke="#10b981" stroke-width="2"/>
+    <text x="12" y="16" fill="#ffffff" font-size="10" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">4</text>
+    <rect x="35" y="0" width="840" height="46" rx="6" fill="#1e293b" stroke="#334155" stroke-width="0.8"/>
+    <text x="48" y="16" fill="#f8fafc" font-size="11" font-family="Noto Sans SC" font-weight="bold">4.0 规章制度向量知识库检索与证据链对标</text>
+    <text x="48" y="34" fill="#38bdf8" font-size="10" font-family="Noto Sans SC">命中条文：锁定《中润农垦大额资金支付管理办法》第14条（前置党委会纪要缺失）与第21条（绝对勾稽）</text>
+    <rect x="740" y="13" width="120" height="20" rx="4" fill="#064e3b" fill-opacity="0.4"/>
+    <text x="800" y="27" fill="#34d399" font-size="9.5" font-family="Noto Sans SC" text-anchor="middle">HIT(2项) · 54ms</text>
+  </g>
+
+  <!-- Node 5.0 -->
+  <g transform="translate(48, 341)">
+    <circle cx="12" cy="12" r="10" fill="#065f46" stroke="#10b981" stroke-width="2"/>
+    <text x="12" y="16" fill="#ffffff" font-size="10" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">5</text>
+    <rect x="35" y="0" width="840" height="38" rx="6" fill="#1e293b" stroke="#334155" stroke-width="0.8"/>
+    <text x="48" y="16" fill="#f8fafc" font-size="11" font-family="Noto Sans SC" font-weight="bold">5.0 综合合规审查研判与处置建议生成</text>
+    <text x="260" y="16" fill="#94a3b8" font-size="9.5" font-family="Noto Sans SC">综合定级为二级合规瑕疵 ｜ 兼顾食品生产保供时效 ｜ 处置建议为【退回补正材料后放行】</text>
+    <rect x="740" y="9" width="120" height="20" rx="4" fill="#064e3b" fill-opacity="0.4"/>
+    <text x="800" y="23" fill="#34d399" font-size="9.5" font-family="Noto Sans SC" text-anchor="middle">READY · 45ms</text>
+  </g>
+
+  <!-- Node 6.0 -->
+  <g transform="translate(48, 391)">
+    <circle cx="12" cy="12" r="10" fill="#1e3a8a" stroke="#3b82f6" stroke-width="2"/>
+    <text x="12" y="16" fill="#ffffff" font-size="10" font-family="Noto Sans SC" font-weight="bold" text-anchor="middle">6</text>
+    <rect x="35" y="0" width="840" height="38" rx="6" fill="#0f172a" stroke="#3b82f6" stroke-width="1"/>
+    <text x="48" y="16" fill="#60a5fa" font-size="11" font-family="Noto Sans SC" font-weight="bold">6.0 审查意见反馈与业务系统状态同步</text>
+    <text x="260" y="16" fill="#94a3b8" font-size="9.5" font-family="Noto Sans SC">赵志远 CA 数字签名存证 ｜ Webhook 回传泛微 OA (HTTP 200 OK，回执 ACK-OA-20260905-XXXXXX)</text>
+    <rect x="740" y="9" width="120" height="20" rx="4" fill="#1e3a8a" fill-opacity="0.5"/>
+    <text x="800" y="23" fill="#93c5fd" font-size="9.5" font-family="Noto Sans SC" text-anchor="middle">PASS · 24ms</text>
+  </g>
+</svg>
+</whiteboard>
+
+<h2>1. 审计看板四大效能指标与法律存证效力</h2>
+<ul>
+  <li><b>380 毫秒全流程推演时效</b>：将多模态 OCR、24 项要素双向计算、向量规章检索等复杂推理压缩在 380ms 内完成，实现审批体验无感知；</li>
+  <li><b>11 部现行有效规章对标</b>：涵盖《大额资金支付管理办法》《“三重一大”集体决策实施办法》《食品安全质量控制规范 v3.2》等，实现内控条文 100% 穷尽检索；</li>
+  <li><b>2 项合规瑕疵精准检出</b>：直接定位至《大额资金办法》第十四条（前置纪要缺失）与第二十一条（绝对勾稽），指出违规事实与依据条文；</li>
+  <li><b>98.8% 高证据链置信度</b>：每一个审查观点均与随附原件 OCR 文本切片及规章条文逐一锚定对应，杜绝大模型无依据幻觉。</li>
+</ul>
+
+<h1>五、典型业务场景实机核验（图文对照）</h1>
+<p>以下基于中润农垦食品集团生产一线真实业务数据，全方位展示系统运行实景与领导专属操作界面：</p>
+
+<h2>1. 协同单据待办审批池（分管领导专属视图）</h2>
+<p>待办任务池直观汇总来自泛微 OA、ERP 供应链及 SAP 平台的待审事项。通过顶层搜索栏可按单号、合同名、供应商或部门实时检索，并直观呈现 AI 初审预警诊断（存在勾稽差额 / 致命违规拦截 / 合规符合放行）：</p>
+
+<img path="@./docs/screenshots/01_task_pool.png" caption="图 1：协同系统推送单据待办审批池（分管副总经理·赵志远专属视图）" />
+
+<h2>2. 业务来源单据（10 项核心审查要素提炼）与 OCR 原件状态</h2>
+<p>彻底去除非审查行政冗余字段（剔除经办人电话、常规条款长文等 20+ 项无用干扰），精炼呈现 10 项核心审查要素规范网格，大额资金自动标黄，随附扫描件清晰展示「✓ OCR 解析完成」状态：</p>
+
+<img path="@./docs/screenshots/02_review_detail.png" caption="图 2：业务来源单据（10 项核心审查要素规范网格）与送审原件 OCR 状态" />
+
+<h2>3. 智能审查分析与立体交叉勾稽核验（案例一）</h2>
+<p>针对《2026年度秋季万吨级大豆原粮毛油采购框架协议》，系统将申报值与附件明细乘积逐行比对，精准标红警示 <b>¥50,000 元未列明差额</b>、<b>13% vs 9% 税率差异</b>，并提示<b>金额超 100 万元未附党委会“三重一大”前置审议纪要文号</b>，下方完整列示命中的管理办法第 14 条与第 21 条原文：</p>
+
+<img path="@./docs/screenshots/02_review_crosscheck.png" caption="图 3：智能审查分析结论、要素勾稽比对表与命中现行制度依据" />
+
+<h2>4. 审批意见反馈、SM2 验签与 Webhook 回执闭环</h2>
+<p>分管领导复核后勾选履职责任确认，选择审批决议（退回补正），并可一键引用规范批语模板。点击提交后，系统即时通过 Webhook 回传泛微 OA，并在界面生成包含 <b>ACK 回执单号</b>、<b>SM2 国密验签哈希</b>及<b>「中润农垦已签署·合同复批专用」红色电子印章</b>的正式回执凭单：</p>
+
+<img path="@./docs/screenshots/06_signed_feedback_full.png" caption="图 4：审批意见反馈、SM2 数字防伪签名与业务系统 Webhook 回执凭单" />
+
+<h2>5. 案例二深入实战：食品质量底线冲突与致命合规拦截</h2>
+<p>在《高活性复合面包改良剂及酵母伴侣年度战略直供协议》中，供方合同约定出厂合格率 95% 验收且免除第三方 CMA 检验报告。系统即刻识别其严重背离集团《食品安全质量控制规范》99.8% 底线，触发<b>红色致命合规拦截</b>，推荐直接坚决否决，彻底阻断重大生产质量与品牌声誉风险：</p>
+
+<img path="@./docs/screenshots/07_case_quality_conflict.png" caption="图 5：案例二实战（食品安全重大冲突与致命违规拦截）" />
+
+<h2>6. 标准化时序节点树审计日志看板</h2>
+<p>系统提供专门的“审计推演日志”页签，将每一次审查过程拆解为 6 个标准时序节点，以树状分支结构展现毫秒级时间戳、执行状态图例及底层 Payload 报文与 OCR 实体摘要，满足国企纪检审计穿透追溯：</p>
+
+<img path="@./docs/screenshots/03_audit_node_tree.png" caption="图 6：时序节点树审计推演日志（满足纪检监察与信创审计穿透规范）" />
+
+<h2>7. 内控合规资产（现行规章库）与不可篡改审批台账</h2>
+<p>系统常设“规章制度库”与“审批台账”，沉淀企业 11 部现行规章标准及全量历史审批归档数据，支持多维分类检索与红头公文审查意见书快速调阅导出：</p>
+
+<img path="@./docs/screenshots/04_knowledge_base.png" caption="图 7：内控合规资产中心 · 现行规章制度与国标知识库" />
+
+<img path="@./docs/screenshots/05_audit_ledger.png" caption="图 8：全要素不可篡改审批台账与多维检索中心" />
+
+<h1>六、系统投产落地与信创安全保障</h1>
+<p>为满足国企在数据保密、系统稳定与合规信创方面的严苛要求，FDE 系统在底层架构上提供全方位保障：</p>
+<ul>
+  <li><b>100% 离线私有化运行，核心数据不出内网</b>：系统所有 OCR 版面分析模型、规章向量检索库及合规大模型均可部署在国企内网私有云机房，完全不依赖公网 API，合同原件、商务单价与审批记录零外泄风险。</li>
+  <li><b>全栈信创软硬件环境深度适配</b>：全面兼容国产统信 UOS、麒麟 Kylin 操作系统；适配华为鲲鹏、海光及飞腾 CPU；支持达梦、人大金仓数据库；支持国产自主可控大模型（如通义千问信创版、智谱 GLM、中科闻歌）。</li>
+  <li><b>极速集成与高可用保障</b>：通过容器化轻量部署，仅需 3 个工作日即可完成与泛微 OA、致远协同或 ERP 的标准 Webhook 接口联调；支持双机热备与容灾切换，保障 7×24 小时不间断稳定运行。</li>
+</ul>
+
+<h1>七、国企领导高频关切 5 问 5 答 (FAQ)</h1>
+
+<h2>Q1：系统上线后，是否需要我们废弃或大改现有的泛微/致远 OA 系统？</h2>
+<p><b>A1：绝对不需要。</b>系统采用纯“旁路协同”模式，不对原 OA/ERP 进行侵入式改造。经办人依然在原 OA 起草提交流程，仅在审批人（如分管领导）审阅环节，系统提供极简穿透核验与辅助签批，审批意见一键自动回写原系统，原有投资与流转习惯完全保留。</p>
+
+<h2>Q2：AI 给出建议后，审批决议到底是 AI 说了算还是领导说了算？</h2>
+<p><b>A2：100% 由领导说了算。</b>系统定位于“智能副驾与参谋助手”，AI 的职责是将复杂繁琐的数字乘积、发票税率以及匹配的规章条款客观清晰地摆在领导面前，并根据制度推荐批语模板。最终裁定（准予通过 / 退回补正 / 坚决否决）完全由领导亲自审定并签署，AI 绝不越俎代庖。</p>
+
+<h2>Q3：合同扫描件与涉及的商业机密，是否存在上传到公网被泄露的风险？</h2>
+<p><b>A3：绝无泄露风险。</b>本系统支持物理隔离的纯离线局域网私有化部署。从 OCR 识别、向量检索到模型推理全部在企业本地机房完成，网络策略上完全阻断任何外网出口连接，确保大宗物资采购价格与供应商底牌绝对保密。</p>
+
+<h2>Q4：面对上级纪检监察、国资委巡视或离任审计时，系统如何提供证明？</h2>
+<p><b>A4：即查即验、全链举证。</b>系统记录了 6 大时序节点毫秒级日志流水，并为每一次审批赋予唯一防伪 ACK 回执单号与 SM2 国密哈希。审计人员可随时调阅全过程证据链，并支持一键导出标准红头《合同合规审查意见书》，彻底化解“责任说不清、凭证找不到”的被动局面。</p>
+
+<h2>Q5：系统推行会不会增加基层业务经办人员的工作负担？</h2>
+<p><b>A5：不仅不增负，反而是重大减负。</b>经办人无需手动录入多余台账，系统自动完成单据与附件的交叉勾稽核验。在遇到瑕疵时，系统提前预警并指明缺少哪些具体纪要或差额所在，经办人在提报前端即可完成自查自纠，大幅减少被打回重复报审的来回扯皮摩擦。</p>
+
+<callout emoji="🚀" background-color="light-purple" border-color="purple">
+  <p><b>总结与推进建议：</b></p>
+  <p>FDE 国企智能审批合规审查系统以严谨的企业级 B2B 语言、客观可量化的勾稽比对和毫秒级时序审计，为国企筑牢内控与廉洁风险防线。建议先期在中润农垦大宗生产原料与食品供应链合同审批中开展试点，验证成效后全集团推广复制。</p>
+</callout>
