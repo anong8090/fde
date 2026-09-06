@@ -115,12 +115,36 @@ export interface ApprovalFormData {
   summary: string;               // 呈批事项背景与请示理由
 }
 
+export interface PdfPageContent {
+  pageNumber: number;
+  headerText?: string;
+  preamble?: string;
+  clauses?: {
+    id: string;
+    num: string;
+    title: string;
+    content: string;
+    highlightKey?: string;
+    highlightValue?: string;
+    isRisk?: boolean;
+    riskBadge?: string;
+  }[];
+  tableData?: {
+    headers: string[];
+    rows: (string | number)[][];
+    totalRow?: (string | number)[];
+  };
+  footerNote?: string;
+  showSeal?: boolean;
+}
+
 export interface AttachmentFile {
   id: string;
   name: string;
   size: string;
   type: string;
   category?: "主合同" | "明细表" | "资质证明" | "技术附录";
+  totalPages?: number;
   ocrExtractedText: string;
   extractedFields: {
     contractAmount?: number;
@@ -150,6 +174,7 @@ export interface AttachmentFile {
     rows: (string | number)[][];
     totalRow?: (string | number)[];
   };
+  pages?: PdfPageContent[];
   signDate?: string;
   sealText?: string;
 }
@@ -206,4 +231,12 @@ export interface FdeAnalysisResult {
     rulesChecked: number;
     confidenceScore: number;
   };
+}
+
+export interface FdeMockCase {
+  id: string;
+  taskItem: PushTaskItem;
+  defaultWorkflow: WorkflowNode[];
+  formData: ApprovalFormData;
+  attachments: AttachmentFile[];
 }

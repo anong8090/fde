@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ApprovalFormData,
   AttachmentFile,
@@ -51,6 +51,105 @@ const IconAudit = () => (
     <polyline points="10 9 9 9 8 9"></polyline>
   </svg>
 );
+
+interface PipelineStageItem {
+  stage: number;
+  name: string;
+  timeRange: string;
+  startSec: number;
+  endSec: number;
+  icon: string;
+  desc: string;
+  logs: { time: number; text: string; level?: "info" | "warn" | "danger" | "success" }[];
+}
+
+const AUDIT_PIPELINE_STAGES: PipelineStageItem[] = [
+  {
+    stage: 0,
+    name: "报文接入与要素解析",
+    timeRange: "0s ~ 10.5s",
+    startSec: 0,
+    endSec: 10.5,
+    icon: "📥",
+    desc: "接收协同系统报文，抽取 24 项关键业务元数据，核验 SM3 数字指纹",
+    logs: [
+      { time: 1.0, text: "[00:01] 接收协同业务系统 (OA/SRM) 结构化审批呈批单报文...", level: "info" },
+      { time: 3.5, text: "[00:03] 验证报文签名与国家商密 SM3 数据完整性指纹... 校验通过", level: "success" },
+      { time: 6.8, text: "[00:07] 抽取 24 项业务实体：采购申请人、预算科目、供方统一信用代码、开户行、结算周期...", level: "info" },
+      { time: 9.8, text: "[00:10] 业务单据建模完成：项目预算 ¥5,000,000.00，申报金额 ¥5,800,000.00", level: "info" }
+    ]
+  },
+  {
+    stage: 1,
+    name: "随附多页原件多模态 OCR 版面切片",
+    timeRange: "10.5s ~ 35.1s",
+    startSec: 10.5,
+    endSec: 35.1,
+    icon: "📄",
+    desc: "多页扫描件排版切片、表格结构化还原、印章防伪特征与手写批注提取",
+    logs: [
+      { time: 12.0, text: "[00:12] 加载随附 PDF 原件《框架采购主协议.pdf》(共 3 页)...", level: "info" },
+      { time: 16.5, text: "[00:16] 多模态版面分析 (Layout-LM)：切分标题、正文条款、附件表格、签署栏...", level: "info" },
+      { time: 21.0, text: "[00:21] 执行第 1 页 OCR 表格结构化解析：提取产品规格、单价、交货期限...", level: "info" },
+      { time: 26.5, text: "[00:26] 执行第 2 页条款深度审读：定位“质量检验标准与违约责任”条款...", level: "info" },
+      { time: 30.8, text: "[00:31] 执行第 3 页签署页印章识别：检测乙方企业公章与法定代表人印章，匹配电子防伪特征...", level: "success" },
+      { time: 34.5, text: "[00:34] 多页原件 OCR 与切片完成，提取 14 条核心结构化条款", level: "success" }
+    ]
+  },
+  {
+    stage: 2,
+    name: "双向全要素交叉勾稽核验",
+    timeRange: "35.1s ~ 47.9s",
+    startSec: 35.1,
+    endSec: 47.9,
+    icon: "⚖️",
+    desc: "申报表单 vs 随附正文双向核对，校验单价数量、阶梯账期与违约责任",
+    logs: [
+      { time: 37.0, text: "[00:37] 启动全要素双向勾稽引擎 (Cross-Reconciliation)...", level: "info" },
+      { time: 40.5, text: "[00:40] 勾稽核验 [1/5]：单据申报总额 ¥5,800,000.00 vs 合同正文条款 3.1 ¥5,800,000.00... 一致", level: "success" },
+      { time: 43.2, text: "[00:43] 勾稽核验 [2/5]：供方企业名称与纳税人统一社会信用代码对撞... 一致", level: "success" },
+      { time: 45.8, text: "[00:46] 勾稽核验 [3/5]：付款账期“验收合格后90天” vs SRM立项约定“45天”... ⚠️ 检出账期偏离", level: "warn" },
+      { time: 47.2, text: "[00:47] 勾稽核验 [4/5]：税率承担逻辑与专票开具责任核验... 完成", level: "success" }
+    ]
+  },
+  {
+    stage: 3,
+    name: "现行 11 部规章向量库碰撞",
+    timeRange: "47.9s ~ 62.1s",
+    startSec: 47.9,
+    endSec: 62.1,
+    icon: "📚",
+    desc: "全量检索国资监管与内控制度向量库，大模型 RAG 穿透三重一大红线",
+    logs: [
+      { time: 49.5, text: "[00:50] 检索知识库 11 部现行有效规章向量索引 (Embedding: BGE-Large)...", level: "info" },
+      { time: 53.0, text: "[00:53] 对标《国资委关于中央企业违规经营投资责任追究实施办法》... 检索命中 3 条约束", level: "info" },
+      { time: 56.5, text: "[00:56] 对标《重大经营决策“三重一大”实施细则》：合同金额超 500 万须党委会前置批复... ⚠️ 未见纪要文号", level: "warn" },
+      { time: 59.5, text: "[00:59] 对标《食品原料进货查验与质量合规红线制度》：约定合格率 95% 严重违背 99.8% 底线... 🚨 触发一票否决红线", level: "danger" },
+      { time: 61.5, text: "[01:01] 规章向量碰撞比对完毕，生成 3 条制度条款对齐证据链", level: "success" }
+    ]
+  },
+  {
+    stage: 4,
+    name: "三维研判聚合与存证闭环",
+    timeRange: "62.1s ~ 71.9s",
+    startSec: 62.1,
+    endSec: 71.9,
+    icon: "🛡️",
+    desc: "聚合财经/法务/总经理处置意见，输出量化评分，SM2 国密签名存证上链",
+    logs: [
+      { time: 63.5, text: "[01:04] 综合合规模型研判：聚合财务风险（中）、法务履约风险（极高）、内控合规风险（极高）...", level: "warn" },
+      { time: 67.0, text: "[01:07] 合规健康度量化评分生成：62 / 100 (高危预警等级)...", level: "danger" },
+      { time: 69.5, text: "[01:09] 自动撰写《初审处置意见书》及三角色批注草案...", level: "info" },
+      { time: 71.9, text: "[01:12] 完成国家商密 SM2/SM3 存证 Hash 签名，审查全流程闭环！", level: "success" }
+    ]
+  }
+];
+
+const formatPipelineTime = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+};
 
 export default function FdeEnterpriseApp() {
   // 全局宏观主菜单：待办审批、已办台账、规章制度库
@@ -169,6 +268,114 @@ export default function FdeEnterpriseApp() {
   const [newDocClause, setNewDocClause] = useState("");
   const [uploadingStage, setUploadingStage] = useState<string>("");
 
+  // 待办审批池：批量勾选与一键放行通道状态
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [batchModalInfo, setBatchModalInfo] = useState<{
+    open: boolean;
+    hasRisk: boolean;
+    totalCount: number;
+    riskCount: number;
+    normalCount: number;
+    totalAmount: number;
+    normalTasks: PushTaskItem[];
+    riskTasks: PushTaskItem[];
+  } | null>(null);
+  const [batchSuccessToast, setBatchSuccessToast] = useState<string | null>(null);
+  const [sessionHandledIds, setSessionHandledIds] = useState<string[]>([]);
+
+  // AI 全要素多模态深度审查推演状态 (真实国资 60~75 秒审查周期)
+  const [deepScanOpen, setDeepScanOpen] = useState<boolean>(false);
+  const [deepScanStage, setDeepScanStage] = useState<number>(0);
+  const [deepScanProgress, setDeepScanProgress] = useState<number>(0);
+  const [deepScanElapsedSec, setDeepScanElapsedSec] = useState<number>(0);
+  const [deepScanSpeed, setDeepScanSpeed] = useState<number>(1);
+  const [deepScanCompleted, setDeepScanCompleted] = useState<boolean>(false);
+  const deepScanIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const terminalBottomRef = useRef<HTMLDivElement | null>(null);
+
+  // 启动 AI 全要素多模态深度审查推演
+  const handleStartDeepScan = () => {
+    if (deepScanIntervalRef.current) {
+      clearInterval(deepScanIntervalRef.current);
+    }
+    setDeepScanOpen(true);
+    setDeepScanStage(0);
+    setDeepScanProgress(0);
+    setDeepScanElapsedSec(0);
+    setDeepScanCompleted(false);
+  };
+
+  // 极速跳过 / 演示加速模式
+  const handleFastForwardDeepScan = () => {
+    if (deepScanIntervalRef.current) {
+      clearInterval(deepScanIntervalRef.current);
+    }
+    setDeepScanElapsedSec(71.9);
+    setDeepScanProgress(100);
+    setDeepScanStage(4);
+    setDeepScanCompleted(true);
+    executeAnalysis(formData, attachments);
+  };
+
+  // 关闭推演弹窗
+  const handleCloseDeepScan = () => {
+    if (deepScanIntervalRef.current) {
+      clearInterval(deepScanIntervalRef.current);
+    }
+    setDeepScanOpen(false);
+  };
+
+  // 驱动全要素深度审查计时与推演状态机
+  useEffect(() => {
+    if (!deepScanOpen || deepScanCompleted) return;
+
+    const tickMs = 200;
+    deepScanIntervalRef.current = setInterval(() => {
+      setDeepScanElapsedSec((prev) => {
+        const next = Math.min(71.9, +(prev + (tickMs / 1000) * deepScanSpeed).toFixed(2));
+
+        if (next < 10.5) {
+          setDeepScanStage(0);
+          setDeepScanProgress(Math.min(18, Math.round((next / 10.5) * 18)));
+        } else if (next < 35.1) {
+          setDeepScanStage(1);
+          setDeepScanProgress(Math.min(52, Math.round(18 + ((next - 10.5) / (35.1 - 10.5)) * 34)));
+        } else if (next < 47.9) {
+          setDeepScanStage(2);
+          setDeepScanProgress(Math.min(70, Math.round(52 + ((next - 35.1) / (47.9 - 35.1)) * 18)));
+        } else if (next < 62.1) {
+          setDeepScanStage(3);
+          setDeepScanProgress(Math.min(88, Math.round(70 + ((next - 47.9) / (62.1 - 47.9)) * 18)));
+        } else if (next < 71.9) {
+          setDeepScanStage(4);
+          setDeepScanProgress(Math.min(99, Math.round(88 + ((next - 62.1) / (71.9 - 62.1)) * 11)));
+        } else {
+          setDeepScanStage(4);
+          setDeepScanProgress(100);
+          setDeepScanCompleted(true);
+          executeAnalysis(formData, attachments);
+          if (deepScanIntervalRef.current) {
+            clearInterval(deepScanIntervalRef.current);
+          }
+        }
+        return next;
+      });
+    }, tickMs);
+
+    return () => {
+      if (deepScanIntervalRef.current) {
+        clearInterval(deepScanIntervalRef.current);
+      }
+    };
+  }, [deepScanOpen, deepScanCompleted, deepScanSpeed, formData, attachments]);
+
+  // 日志流自动触底滚动
+  useEffect(() => {
+    if (deepScanOpen && terminalBottomRef.current) {
+      terminalBottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [deepScanElapsedSec, deepScanOpen]);
+
   // 初始化执行初审及支持 URL 参数路由
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -214,6 +421,11 @@ export default function FdeEnterpriseApp() {
           sourceSystem: "OA协同办公系统"
         });
       }
+      if (params.get("scroll") === "crosscheck") {
+        setTimeout(() => {
+          window.scrollTo({ top: 860, behavior: "instant" });
+        }, 100);
+      }
     }
     executeAnalysis(formData, attachments);
   }, []);
@@ -246,6 +458,17 @@ export default function FdeEnterpriseApp() {
     const matchedCase = MOCK_CASES.find((c) => c.id === task.caseId) || MOCK_CASES[0];
     const newForm = JSON.parse(JSON.stringify(matchedCase.formData));
     const newAtts = JSON.parse(JSON.stringify(matchedCase.attachments));
+
+    // 同步单据自身真实元数据，保证公文意见书展示真实的合同标题、编号、申请部门、供应商与申报金额
+    newForm.id = task.id;
+    newForm.contractTitle = task.contractTitle;
+    newForm.contractNo = task.contractNo;
+    newForm.department = task.department;
+    newForm.applicant = task.applicant;
+    newForm.supplierName = task.supplierName;
+    newForm.totalAmount = task.totalAmount;
+    newForm.sourceSystem = task.sourceSystem;
+
     setFormData(newForm);
     setAttachments(newAtts);
     setSelectedAttachmentId(newAtts[0]?.id || "");
@@ -257,9 +480,9 @@ export default function FdeEnterpriseApp() {
       setSignedCertificate({
         signTime: task.humanSignOffAt || "2026-09-05 20:50",
         certNo: `CFCA-SOE-2026-${task.id.replace("REQ-", "")}`,
-        sm2Hash: "SM2_SIG_E7B492A08C14F3D69A1C50B3E84F17DA810C29E4",
-        verdictLabel: task.status === "APPROVED" ? "准予通过" : "退回补正",
-        callbackTicket: `ACK-OA-20260905-${task.id.replace("REQ-", "")}`,
+        sm2Hash: `SM2_SIG_${task.id.replace(/[^0-9]/g, "")}C9E4B8A08C14F3D69A1C50B3E84F17DA`,
+        verdictLabel: task.status === "APPROVED" ? "准予通过" : "退回补正/否决",
+        callbackTicket: `ACK-OA-202609-${task.id.replace("REQ-", "")}`,
         sourceSystem: task.sourceSystem
       });
       setHumanReviewNote(task.humanReviewNote || "");
@@ -334,6 +557,9 @@ export default function FdeEnterpriseApp() {
       humanReviewNote: humanReviewNote,
       humanSignOffAt: timeStr
     }));
+
+    // 3. 记录本会话处理 ID
+    setSessionHandledIds((prev) => (prev.includes(currentTask.id) ? prev : [...prev, currentTask.id]));
   };
 
   // 快捷批语引用
@@ -422,6 +648,11 @@ export default function FdeEnterpriseApp() {
   });
 
   const filteredTasks = tasks.filter((t) => {
+    // 待办审批池仅展示待初审的单据（或本会话中刚由用户操作完成的单据，以供确认视觉反馈）
+    const isPending = t.status === "PENDING_REVIEW" || t.status === "REVIEWING";
+    const isHandledInSession = sessionHandledIds.includes(t.id);
+    if (!isPending && !isHandledInSession) return false;
+
     if (taskRiskFilter !== "ALL" && t.riskLevel !== taskRiskFilter) return false;
     if (!taskSearchKeyword.trim()) return true;
     const kw = taskSearchKeyword.toLowerCase();
@@ -455,6 +686,146 @@ export default function FdeEnterpriseApp() {
 
   const pendingCount = tasks.filter((t) => t.status === "PENDING_REVIEW").length;
   const approvedCount = tasks.filter((t) => t.status === "APPROVED" || t.status === "REJECTED").length;
+
+  // 风控大盘 KPI 核心指标计算
+  const totalFunds = tasks.reduce((sum, t) => sum + t.totalAmount, 0);
+  const riskTasks = tasks.filter((t) => t.riskLevel === "HIGH_RISK" || t.riskLevel === "WARNING");
+  const savedEstimate = riskTasks.reduce((sum, t) => sum + t.totalAmount, 0);
+  const completionRate = tasks.length > 0 ? ((approvedCount / tasks.length) * 100).toFixed(1) : "0";
+
+  // 待办池批量操作衍生状态与计算
+  const selectedTasks = tasks.filter((t) => selectedTaskIds.includes(t.id));
+  const selectedNormalTasks = selectedTasks.filter((t) => t.riskLevel === "NORMAL");
+  const selectedRiskTasks = selectedTasks.filter((t) => t.riskLevel !== "NORMAL");
+  const selectedTotalAmount = selectedTasks.reduce((sum, t) => sum + t.totalAmount, 0);
+
+  const handleToggleSelectTask = (taskId: string) => {
+    setSelectedTaskIds((prev) =>
+      prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId]
+    );
+  };
+
+  const handleToggleSelectAll = () => {
+    const selectableTasks = filteredTasks.filter((t) => t.status === "PENDING_REVIEW" || t.status === "REVIEWING");
+    const allSelected = selectableTasks.length > 0 && selectableTasks.every((t) => selectedTaskIds.includes(t.id));
+    if (allSelected) {
+      setSelectedTaskIds((prev) => prev.filter((id) => !selectableTasks.some((st) => st.id === id)));
+    } else {
+      const newIds = new Set([...selectedTaskIds, ...selectableTasks.map((t) => t.id)]);
+      setSelectedTaskIds(Array.from(newIds));
+    }
+  };
+
+  // 触发批量审批放行判断
+  const handleTriggerBatchApproval = () => {
+    if (selectedTasks.length === 0) return;
+    setBatchModalInfo({
+      open: true,
+      hasRisk: selectedRiskTasks.length > 0,
+      totalCount: selectedTasks.length,
+      riskCount: selectedRiskTasks.length,
+      normalCount: selectedNormalTasks.length,
+      totalAmount: selectedTotalAmount,
+      normalTasks: selectedNormalTasks,
+      riskTasks: selectedRiskTasks
+    });
+  };
+
+  // 确认批量放行 (仅放行合规免检项)
+  const handleConfirmBatchPass = () => {
+    if (!batchModalInfo || batchModalInfo.normalTasks.length === 0) {
+      setBatchModalInfo(null);
+      return;
+    }
+    const normalIds = new Set(batchModalInfo.normalTasks.map((t) => t.id));
+    const nowStr = new Date().toLocaleString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    }).replace(/\//g, "-");
+
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (normalIds.has(t.id)) {
+          return {
+            ...t,
+            status: "APPROVED",
+            humanSignOffAt: nowStr,
+            humanReviewNote: "【批量合规免检放行】AI与规则引擎全合规，分管副总经理（赵志远）批量授权核准，签发CFCA数字证书入库。"
+          };
+        }
+        return t;
+      })
+    );
+
+    const passedCount = batchModalInfo.normalTasks.length;
+    const passedAmount = batchModalInfo.normalTasks.reduce((s, t) => s + t.totalAmount, 0);
+
+    // 清空已放行项的勾选
+    setSelectedTaskIds((prev) => prev.filter((id) => !normalIds.has(id)));
+    setSessionHandledIds((prev) => Array.from(new Set([...prev, ...Array.from(normalIds)])));
+    setBatchModalInfo(null);
+    setBatchSuccessToast(
+      `✓ 成功批量放行 ${passedCount} 笔合规免检合同（金额合计 ¥${passedAmount.toLocaleString()}），已签署 CFCA 数字证书归档至台账！`
+    );
+    setTimeout(() => {
+      setBatchSuccessToast(null);
+    }, 6000);
+  };
+
+  // Excel / CSV 台账导出
+  const handleExportLedgerToCsv = () => {
+    const headers = [
+      "呈批单号",
+      "合同系统编号",
+      "合同名称",
+      "申报部门",
+      "经办人",
+      "签约相对方",
+      "申报金额(元)",
+      "来源系统",
+      "风险等级",
+      "流转状态",
+      "推送接收时间",
+      "签批完成时间",
+      "签批责任人",
+      "签批决议与批注",
+      "AI初审预警摘要",
+      "CFCA数字存证编号"
+    ];
+
+    const rows = filteredLedgerTasks.map((t) => [
+      `"${t.id}"`,
+      `"${t.contractNo}"`,
+      `"${t.contractTitle.replace(/"/g, '""')}"`,
+      `"${t.department}"`,
+      `"${t.applicant}"`,
+      `"${t.supplierName.replace(/"/g, '""')}"`,
+      t.totalAmount,
+      `"${t.sourceSystem}"`,
+      `"${t.riskLevel === "HIGH_RISK" ? "高风险" : t.riskLevel === "WARNING" ? "待补正" : "合规免检"}"`,
+      `"${t.status === "APPROVED" ? "已办结(准予通过)" : t.status === "REJECTED" ? "已退回" : "待办流转中"}"`,
+      `"${t.pushedAt}"`,
+      `"${t.humanSignOffAt || "-"}"`,
+      `"赵志远(分管副总经理)"`,
+      `"${(t.humanReviewNote || (t.status === "APPROVED" ? "同意通过" : "流转中")).replace(/"/g, '""')}"`,
+      `"${t.alertSnippet.replace(/"/g, '""')}"`,
+      `"CFCA-${t.id}-SM2-${t.riskLevel === "HIGH_RISK" ? "ALERT" : "VERIFIED"}"`
+    ]);
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `中润农垦集团_合同审查与签批审计台账_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="app-layout">
@@ -637,11 +1008,21 @@ export default function FdeEnterpriseApp() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => executeAnalysis(formData, attachments)}
+                  onClick={handleStartDeepScan}
                   className="btn-secondary"
-                  style={{ padding: "5px 10px", fontSize: "0.8rem" }}
+                  style={{
+                    padding: "5px 12px",
+                    fontSize: "0.8rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    borderColor: "#38bdf8",
+                    color: "#0369a1",
+                    background: "#f0f9ff"
+                  }}
+                  title="启动 60~75 秒全流程多模态深度合规审查推演 (多页OCR、交叉勾稽与11部规章碰撞)"
                 >
-                  {loading ? "审查分析中..." : "重新智能审查"}
+                  <span>⚡</span> 重新智能审查 (1.2分钟管道)
                 </button>
               </>
             )}
@@ -707,7 +1088,7 @@ export default function FdeEnterpriseApp() {
                           color: taskRiskFilter === "ALL" ? "#ffffff" : "#475569"
                         }}
                       >
-                        全部 ({tasks.length})
+                        全部 ({tasks.filter(t => t.status === "PENDING_REVIEW" || sessionHandledIds.includes(t.id)).length})
                       </button>
                       <button
                         type="button"
@@ -723,7 +1104,7 @@ export default function FdeEnterpriseApp() {
                           color: taskRiskFilter === "HIGH_RISK" ? "#ffffff" : "#dc2626"
                         }}
                       >
-                        ⚠️ 高风险 ({tasks.filter(t => t.riskLevel === "HIGH_RISK").length})
+                        ⚠️ 高风险 ({tasks.filter(t => (t.status === "PENDING_REVIEW" || sessionHandledIds.includes(t.id)) && t.riskLevel === "HIGH_RISK").length})
                       </button>
                       <button
                         type="button"
@@ -739,7 +1120,7 @@ export default function FdeEnterpriseApp() {
                           color: taskRiskFilter === "WARNING" ? "#ffffff" : "#d97706"
                         }}
                       >
-                        ⚡️ 待补正 ({tasks.filter(t => t.riskLevel === "WARNING").length})
+                        ⚡️ 待补正 ({tasks.filter(t => (t.status === "PENDING_REVIEW" || sessionHandledIds.includes(t.id)) && t.riskLevel === "WARNING").length})
                       </button>
                       <button
                         type="button"
@@ -755,7 +1136,7 @@ export default function FdeEnterpriseApp() {
                           color: taskRiskFilter === "NORMAL" ? "#ffffff" : "#059669"
                         }}
                       >
-                        ✓ 合规 ({tasks.filter(t => t.riskLevel === "NORMAL").length})
+                        ✓ 合规 ({tasks.filter(t => (t.status === "PENDING_REVIEW" || sessionHandledIds.includes(t.id)) && t.riskLevel === "NORMAL").length})
                       </button>
                     </div>
 
@@ -773,9 +1154,52 @@ export default function FdeEnterpriseApp() {
                   </div>
                 </div>
 
+                {/* 批量放行成功提示横条 */}
+                {batchSuccessToast && (
+                  <div style={{
+                    background: "#ecfdf5",
+                    border: "1px solid #a7f3d0",
+                    color: "#065f46",
+                    padding: "10px 16px",
+                    borderRadius: "8px",
+                    fontSize: "0.82rem",
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "12px"
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "1.1rem" }}>✓</span>
+                      <span>{batchSuccessToast}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setBatchSuccessToast(null)}
+                      style={{ background: "none", border: "none", color: "#059669", cursor: "pointer", fontWeight: 700 }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+
                 <table className="enterprise-table">
                   <thead>
                     <tr>
+                      <th style={{ width: "38px", textAlign: "center", padding: "8px 6px" }}>
+                        <input
+                          type="checkbox"
+                          style={{ cursor: "pointer", width: "15px", height: "15px" }}
+                          checked={
+                            filteredTasks.filter((t) => t.status === "PENDING_REVIEW" || t.status === "REVIEWING").length > 0 &&
+                            filteredTasks
+                              .filter((t) => t.status === "PENDING_REVIEW" || t.status === "REVIEWING")
+                              .every((t) => selectedTaskIds.includes(t.id))
+                          }
+                          onChange={handleToggleSelectAll}
+                          title="全选/反选本页待办单据"
+                        />
+                      </th>
                       <th style={{ width: "130px", whiteSpace: "nowrap" }}>呈批单号</th>
                       <th>合同呈批事项</th>
                       <th>申报部门 / 经办人</th>
@@ -790,74 +1214,283 @@ export default function FdeEnterpriseApp() {
                   <tbody>
                     {filteredTasks.length === 0 ? (
                       <tr>
-                        <td colSpan={9} style={{ textAlign: "center", padding: "30px", color: "#94a3b8", fontSize: "0.85rem" }}>
+                        <td colSpan={10} style={{ textAlign: "center", padding: "30px", color: "#94a3b8", fontSize: "0.85rem" }}>
                           未检索到符合条件的待办单据
                         </td>
                       </tr>
                     ) : (
-                      filteredTasks.map((task) => (
-                        <tr key={task.id}>
-                          <td className="mono" style={{ fontWeight: 600, color: "#0284c7", whiteSpace: "nowrap" }}>
-                            {task.id}
-                          </td>
-                          <td>
-                            <div style={{ fontWeight: 600, color: "#0f172a" }}>{task.contractTitle}</div>
-                            <div className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>
-                              文号: {task.contractNo} · 接收: {task.pushedAt}
-                            </div>
-                          </td>
-                          <td>
-                            <div style={{ color: "#334155" }}>{task.department}</div>
-                            <div style={{ fontSize: "0.75rem", color: "#64748b" }}>{task.applicant}</div>
-                          </td>
-                          <td style={{ color: "#334155" }}>{task.supplierName}</td>
-                          <td className="mono" style={{ fontWeight: 700, color: task.totalAmount >= 1000000 ? "#b45309" : "#0f172a", whiteSpace: "nowrap" }}>
-                            ¥{task.totalAmount.toLocaleString()}
-                          </td>
-                          <td style={{ whiteSpace: "nowrap" }}>
-                            <span style={{ fontSize: "0.72rem", background: "#f1f5f9", padding: "2px 6px", borderRadius: "4px", color: "#475569" }}>
-                              {task.sourceSystem}
-                            </span>
-                          </td>
-                          <td>
-                            <div style={{ marginBottom: "2px" }}>{getRiskBadge(task.riskLevel)}</div>
-                            <div style={{ fontSize: "0.74rem", color: "#64748b", maxWidth: "260px" }}>
-                              {task.alertSnippet}
-                            </div>
-                          </td>
-                          <td style={{ whiteSpace: "nowrap" }}>
-                            {task.status === "PENDING_REVIEW" && (
-                              <span style={{ fontSize: "0.74rem", color: "#d97706", background: "#fffbeb", padding: "2px 6px", borderRadius: "4px", fontWeight: 600, whiteSpace: "nowrap" }}>
-                                待审中
+                      filteredTasks.map((task) => {
+                        const isSelected = selectedTaskIds.includes(task.id);
+                        const isHandled = task.status === "APPROVED" || task.status === "REJECTED";
+                        return (
+                          <tr key={task.id} style={{ background: isSelected ? "rgba(2, 132, 199, 0.05)" : undefined }}>
+                            <td style={{ textAlign: "center", padding: "8px 6px" }}>
+                              <input
+                                type="checkbox"
+                                style={{ cursor: isHandled ? "not-allowed" : "pointer", width: "15px", height: "15px" }}
+                                checked={isSelected}
+                                disabled={isHandled}
+                                onChange={() => handleToggleSelectTask(task.id)}
+                                title={isHandled ? "该单据已结案，无法重复勾选" : "勾选以进行批量操作"}
+                              />
+                            </td>
+                            <td className="mono" style={{ fontWeight: 600, color: "#0284c7", whiteSpace: "nowrap" }}>
+                              {task.id}
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: 600, color: "#0f172a" }}>{task.contractTitle}</div>
+                              <div className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>
+                                文号: {task.contractNo} · 接收: {task.pushedAt}
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ color: "#334155" }}>{task.department}</div>
+                              <div style={{ fontSize: "0.75rem", color: "#64748b" }}>{task.applicant}</div>
+                            </td>
+                            <td style={{ color: "#334155" }}>{task.supplierName}</td>
+                            <td className="mono" style={{ fontWeight: 700, color: task.totalAmount >= 1000000 ? "#b45309" : "#0f172a", whiteSpace: "nowrap" }}>
+                              ¥{task.totalAmount.toLocaleString()}
+                            </td>
+                            <td style={{ whiteSpace: "nowrap" }}>
+                              <span style={{ fontSize: "0.72rem", background: "#f1f5f9", padding: "2px 6px", borderRadius: "4px", color: "#475569" }}>
+                                {task.sourceSystem}
                               </span>
-                            )}
-                            {task.status === "APPROVED" && (
-                              <span style={{ fontSize: "0.74rem", color: "#059669", background: "#ecfdf5", padding: "2px 6px", borderRadius: "4px", fontWeight: 600, whiteSpace: "nowrap" }}>
-                                准予通过
-                              </span>
-                            )}
-                            {task.status === "REJECTED" && (
-                              <span style={{ fontSize: "0.74rem", color: "#dc2626", background: "#fef2f2", padding: "2px 6px", borderRadius: "4px", fontWeight: 600, whiteSpace: "nowrap" }}>
-                                退回/否决
-                              </span>
-                            )}
-                          </td>
-                          <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenTask(task)}
-                              className="glow-btn"
-                              style={{ padding: "4px 12px", fontSize: "0.78rem" }}
-                            >
-                              办理审查 →
-                            </button>
-                          </td>
-                        </tr>
-                      ))
+                            </td>
+                            <td>
+                              <div style={{ marginBottom: "2px" }}>{getRiskBadge(task.riskLevel)}</div>
+                              <div style={{ fontSize: "0.74rem", color: "#64748b", maxWidth: "260px" }}>
+                                {task.alertSnippet}
+                              </div>
+                            </td>
+                            <td style={{ whiteSpace: "nowrap" }}>
+                              {task.status === "PENDING_REVIEW" && (
+                                <span style={{ fontSize: "0.74rem", color: "#d97706", background: "#fffbeb", padding: "2px 6px", borderRadius: "4px", fontWeight: 600, whiteSpace: "nowrap" }}>
+                                  待审中
+                                </span>
+                              )}
+                              {task.status === "APPROVED" && (
+                                <span style={{ fontSize: "0.74rem", color: "#059669", background: "#ecfdf5", padding: "2px 6px", borderRadius: "4px", fontWeight: 600, whiteSpace: "nowrap" }}>
+                                  准予通过
+                                </span>
+                              )}
+                              {task.status === "REJECTED" && (
+                                <span style={{ fontSize: "0.74rem", color: "#dc2626", background: "#fef2f2", padding: "2px 6px", borderRadius: "4px", fontWeight: 600, whiteSpace: "nowrap" }}>
+                                  退回/否决
+                                </span>
+                              )}
+                            </td>
+                            <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenTask(task)}
+                                className="glow-btn"
+                                style={{ padding: "4px 12px", fontSize: "0.78rem" }}
+                              >
+                                办理审查 →
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
               </div>
+
+              {/* 底部悬浮批量操作栏 */}
+              {selectedTaskIds.length > 0 && (
+                <div className="batch-action-bar">
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
+                    <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#f8fafc" }}>
+                      已选定 <span style={{ color: "#38bdf8", fontSize: "1.05rem" }}>{selectedTasks.length}</span> 笔审批单据
+                    </span>
+                    <span style={{ fontSize: "0.78rem", color: "#94a3b8" }}>
+                      合计申报金额：<strong className="mono" style={{ color: "#f1f5f9", fontSize: "0.92rem" }}>¥{selectedTotalAmount.toLocaleString()}</strong>
+                    </span>
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <span className="batch-badge" style={{ background: "rgba(5, 150, 105, 0.25)", color: "#34d399", border: "1px solid rgba(52, 211, 153, 0.4)" }}>
+                        ✓ 合规免检项：{selectedNormalTasks.length} 笔
+                      </span>
+                      {selectedRiskTasks.length > 0 && (
+                        <span className="batch-badge" style={{ background: "rgba(220, 38, 38, 0.25)", color: "#f87171", border: "1px solid rgba(248, 113, 113, 0.4)" }}>
+                          ⚠️ 存疑/高风险项：{selectedRiskTasks.length} 笔
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTaskIds([])}
+                      className="btn-secondary"
+                      style={{ padding: "6px 14px", fontSize: "0.78rem", background: "rgba(255,255,255,0.08)", color: "#cbd5e1", borderColor: "#475569" }}
+                    >
+                      取消选择
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleTriggerBatchApproval}
+                      className="glow-btn"
+                      style={{
+                        padding: "6px 18px",
+                        fontSize: "0.82rem",
+                        background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                        borderColor: "#10b981",
+                        boxShadow: "0 0 12px rgba(16, 185, 129, 0.45)"
+                      }}
+                    >
+                      ⚡ 一键合规批量放行 ({selectedNormalTasks.length}笔)
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 批量放行防呆拦截 / 确认授权弹窗 */}
+              {batchModalInfo?.open && (
+                <div style={{
+                  position: "fixed",
+                  inset: 0,
+                  background: "rgba(15, 23, 42, 0.65)",
+                  backdropFilter: "blur(4px)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 9999,
+                  padding: "16px"
+                }}>
+                  <div style={{
+                    background: "#ffffff",
+                    borderRadius: "12px",
+                    maxWidth: "540px",
+                    width: "100%",
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
+                    overflow: "hidden",
+                    border: batchModalInfo.hasRisk ? "2px solid #ef4444" : "1px solid #e2e8f0"
+                  }}>
+                    {/* 头部 */}
+                    <div style={{
+                      padding: "16px 20px",
+                      background: batchModalInfo.hasRisk ? "#fef2f2" : "#f0fdf4",
+                      borderBottom: batchModalInfo.hasRisk ? "1px solid #fee2e2" : "1px solid #dcfce7",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between"
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span style={{ fontSize: "1.25rem" }}>{batchModalInfo.hasRisk ? "🛡️" : "⚡"}</span>
+                        <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: batchModalInfo.hasRisk ? "#991b1b" : "#166534" }}>
+                          {batchModalInfo.hasRisk ? "国企内控防线拦截（检测到非免检单据）" : "一键合规批量免检放行确认"}
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setBatchModalInfo(null)}
+                        style={{ background: "none", border: "none", fontSize: "1.1rem", color: "#64748b", cursor: "pointer" }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {/* 正文 */}
+                    <div style={{ padding: "20px", fontSize: "0.82rem", color: "#334155", lineHeight: 1.7 }}>
+                      {batchModalInfo.hasRisk ? (
+                        <div>
+                          <div style={{ padding: "10px 14px", background: "#fff1f2", borderRadius: "6px", border: "1px solid #fecdd3", color: "#9f1239", marginBottom: "14px", fontWeight: 600 }}>
+                            ⚠️ 系统已启动智能防呆阻断：在您选中的 {batchModalInfo.totalCount} 笔单据中，包含 <span style={{ textDecoration: "underline", color: "#dc2626" }}>{batchModalInfo.riskCount} 笔非免检单据</span>（含待补正或高危拆单违规），严禁带病盲审批量放行！
+                          </div>
+
+                          <div style={{ marginBottom: "12px" }}>
+                            <div style={{ fontWeight: 700, color: "#0f172a", marginBottom: "4px" }}>【红线阻断项清单（须单笔穿透办理）】：</div>
+                            <ul style={{ margin: 0, paddingLeft: "18px", color: "#b91c1c", fontSize: "0.78rem" }}>
+                              {batchModalInfo.riskTasks.map(rt => (
+                                <li key={rt.id} style={{ marginBottom: "4px" }}>
+                                  <strong>{rt.id}</strong> · {rt.contractTitle} (¥{rt.totalAmount.toLocaleString()}) — {rt.alertSnippet}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {batchModalInfo.normalCount > 0 ? (
+                            <div style={{ padding: "10px 12px", background: "#f8fafc", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
+                              <div style={{ fontWeight: 700, color: "#059669" }}>
+                                ✓ 智能剥离放行建议：
+                              </div>
+                              <div style={{ marginTop: "2px", color: "#475569" }}>
+                                系统已为您剥离出 <strong>{batchModalInfo.normalCount} 笔经 AI 100% 规则核验合规</strong> 的免检单据（合计 ¥{batchModalInfo.normalTasks.reduce((s,t)=>s+t.totalAmount,0).toLocaleString()}），您可一键放行该批合规件，存疑单据继续保留在待办池中逐笔穿透审查。
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ color: "#64748b", fontStyle: "italic" }}>
+                              所选单据中无合规免检件，请在待办池中点击【办理审查】进入详情逐笔穿透核验。
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ marginBottom: "14px", color: "#0f172a" }}>
+                            您已选定 <strong style={{ color: "#0284c7" }}>{batchModalInfo.normalCount} 笔</strong> 全部符合免检标准的常规合同，经知识库与 AI 规则引擎 100% 穿透核验无异常：
+                          </div>
+
+                          <div style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: "6px", border: "1px solid #e2e8f0", marginBottom: "14px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                              <span style={{ color: "#64748b" }}>放行合同批次：</span>
+                              <span className="mono" style={{ fontWeight: 600 }}>{batchModalInfo.normalTasks.map(t => t.id).join(", ")}</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                              <span style={{ color: "#64748b" }}>放行总标的额：</span>
+                              <span className="mono" style={{ fontWeight: 800, color: "#059669", fontSize: "0.95rem" }}>¥{batchModalInfo.totalAmount.toLocaleString()}</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                              <span style={{ color: "#64748b" }}>签署授权认证：</span>
+                              <span style={{ color: "#0284c7", fontWeight: 600 }}>赵志远（分管副总经理）· CFCA 国密电子认证</span>
+                            </div>
+                          </div>
+
+                          <div style={{ fontSize: "0.76rem", color: "#64748b" }}>
+                            点击确认后，系统将自动加盖电子签署印鉴并将审批结果实时同步至 ERP/OA 协同系统，终生存证并归档至审计台账。
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 底部按钮 */}
+                    <div style={{
+                      padding: "12px 20px",
+                      background: "#f8fafc",
+                      borderTop: "1px solid #e2e8f0",
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      gap: "10px"
+                    }}>
+                      <button
+                        type="button"
+                        onClick={() => setBatchModalInfo(null)}
+                        className="btn-secondary"
+                        style={{ padding: "6px 14px", fontSize: "0.78rem" }}
+                      >
+                        取消返回
+                      </button>
+                      {batchModalInfo.normalCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleConfirmBatchPass}
+                          className="glow-btn"
+                          style={{
+                            padding: "6px 18px",
+                            fontSize: "0.82rem",
+                            background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                            borderColor: "#10b981",
+                            boxShadow: "0 0 10px rgba(16, 185, 129, 0.4)"
+                          }}
+                        >
+                          {batchModalInfo.hasRisk ? `仅批量放行合规单据 (${batchModalInfo.normalCount}笔)` : `确认批量放行与签章 (${batchModalInfo.normalCount}笔)`}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
           )}
@@ -919,43 +1552,34 @@ export default function FdeEnterpriseApp() {
                     {/* 左侧：合同附件拟真预览舱 (A4 拟真纸张、商密水印、条款高亮、红章) */}
                     {/* ----------------------------------------------------------- */}
                     <div id="fde-pdf-viewer" className="pdf-viewer-container" style={{ height: "680px" }}>
-                      {/* 原件顶部工具条：多附件切换 Tabs、缩放、OCR纯文本 */}
+                      {/* 原件顶部工具条：附件下拉选择 (免左右滚动)、缩放、OCR纯文本 */}
                       <div className="pdf-viewer-header">
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", flex: 1 }}>
-                          <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#94a3b8", whiteSpace: "nowrap" }}>
-                            随附原件 ({attachments.length})：
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, flex: 1 }}>
+                          <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#94a3b8", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "4px" }}>
+                            <span>📎</span> 随附原件 ({attachments.length})：
                           </span>
-                          <div style={{ display: "flex", gap: "6px", overflowX: "auto" }}>
-                            {attachments.map((att, idx) => {
-                              const isActive = activeAttachment.id === att.id;
-                              return (
-                                <button
-                                  key={att.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedAttachmentId(att.id);
-                                    setActiveHighlightKey(null);
-                                  }}
-                                  className={`pdf-attachment-tab ${isActive ? "active" : ""}`}
-                                  title={`点击切换查看：${att.name}`}
-                                >
-                                  <span style={{
-                                    fontSize: "0.64rem",
-                                    background: isActive ? "rgba(255,255,255,0.25)" : "#334155",
-                                    color: isActive ? "#ffffff" : "#94a3b8",
-                                    padding: "1px 5px",
-                                    borderRadius: "3px",
-                                    fontWeight: 700
-                                  }}>
-                                    {att.category || `附件${idx + 1}`}
-                                  </span>
-                                  <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                    {att.name}
-                                  </span>
-                                  <span style={{ fontSize: "0.64rem", opacity: 0.65 }}>({att.size})</span>
-                                </button>
-                              );
-                            })}
+                          <div className="pdf-attachment-select-wrapper" style={{ flex: 1, minWidth: 0, maxWidth: "none" }}>
+                            <select
+                              id="fde-attachment-select"
+                              className="pdf-attachment-select"
+                              value={activeAttachment.id}
+                              onChange={(e) => {
+                                setSelectedAttachmentId(e.target.value);
+                                setActiveHighlightKey(null);
+                              }}
+                              title={`当前查验附件：${activeAttachment.name} (${activeAttachment.size} · 共${activeAttachment.pages?.length || activeAttachment.totalPages || 1}页)`}
+                            >
+                              {attachments.map((att, idx) => (
+                                <option key={att.id} value={att.id} style={{ background: "#0f172a", color: "#f8fafc" }}>
+                                  {idx + 1}. [{att.category || "附件"}] {att.name} ({att.size}{att.pages?.length ? ` · ${att.pages.length}页` : ""})
+                                </option>
+                              ))}
+                            </select>
+                            <div className="pdf-attachment-select-arrow">
+                              <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </div>
                           </div>
                         </div>
 
@@ -1014,208 +1638,440 @@ export default function FdeEnterpriseApp() {
                         </div>
                       </div>
 
-                      {/* 拟真合同原件内容区 (深底座 + 纯白 A4 拟真纸张) */}
+                      {/* 拟真合同原件内容区 (深底座 + 纯白 A4 拟真纸张 · 支持多页连续滚动) */}
                       <div id="fde-pdf-body" className="pdf-document-body">
-                        <div
-                          className="pdf-page-mock"
-                          style={{
-                            transform: `scale(${zoomLevel / 100})`,
-                            transformOrigin: "top center",
-                            transition: "transform 0.2s ease"
-                          }}
-                        >
-                          {/* 商密防伪水印 */}
-                          <div className="pdf-watermark">
-                            中润农垦商密防伪 · 业务专用
-                          </div>
+                        {activeAttachment.pages && activeAttachment.pages.length > 0 ? (
+                          activeAttachment.pages.map((page, pIdx) => {
+                            const isFirstPage = page.pageNumber === 1;
+                            const totalPages = activeAttachment.totalPages || activeAttachment.pages!.length;
+                            const isLastPage = pIdx === activeAttachment.pages!.length - 1;
 
-                          {/* 合同大标题与系统文号 */}
-                          <div className="pdf-contract-title">
-                            《{activeAttachment.docTitle || activeAttachment.name.replace(".pdf", "")}》
-                          </div>
-                          <div className="pdf-contract-subtitle mono">
-                            {activeAttachment.docSubtitle || `合同编号：${formData.contractNo} · 内部业务档案件`}
-                          </div>
-
-                          {/* 签约双方主体 */}
-                          <div className="pdf-parties">
-                            <div>
-                              <strong>甲方（采购/发包方）：</strong>
-                              {activeAttachment.partyA || formData.partyA}
-                            </div>
-                            <div style={{ marginTop: "4px" }}>
-                              <strong>乙方（供货/承接方）：</strong>
-                              {activeAttachment.partyB || formData.supplierName}
-                              {formData.supplierCredit && (
-                                <span style={{ fontSize: "0.68rem", color: "#0284c7", marginLeft: "8px" }}>
-                                  (统一代码：{formData.supplierCredit.creditCode})
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* 表格类附件渲染 (如明细表、理化检验清单) */}
-                          {activeAttachment.tableData && (
-                            <div style={{ marginBottom: "16px" }}>
-                              <table className="pdf-table">
-                                <thead>
-                                  <tr>
-                                    {activeAttachment.tableData.headers.map((h, i) => (
-                                      <th key={i}>{h}</th>
-                                    ))}
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {activeAttachment.tableData.rows.map((row, rIdx) => (
-                                    <tr key={rIdx}>
-                                      {row.map((cell, cIdx) => (
-                                        <td key={cIdx} className={cIdx === 0 || typeof cell === "number" ? "mono" : ""}>
-                                          {cell}
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  ))}
-                                  {activeAttachment.tableData.totalRow && (
-                                    <tr className="total-row">
-                                      {activeAttachment.tableData.totalRow.map((cell, cIdx) => (
-                                        <td key={cIdx} className={cIdx === 0 || typeof cell === "number" ? "mono" : ""}>
-                                          {cell}
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  )}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
-
-                          {/* 条款清单渲染 (主合同、技术附录、补充协议) */}
-                          {activeAttachment.clauses && activeAttachment.clauses.length > 0 && (
-                            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                              {activeAttachment.clauses.map((c) => {
-                                const isKeyActive =
-                                  activeHighlightKey === c.highlightKey ||
-                                  (activeHighlightKey === "risk_prepay" && (c.highlightKey === "payment" || c.highlightKey === "risk_prepay")) ||
-                                  (activeHighlightKey === "risk_quality" && (c.highlightKey === "quality" || c.highlightKey === "risk_quality")) ||
-                                  (activeHighlightKey === "risk_jurisdiction" && (c.highlightKey === "jurisdiction" || c.highlightKey === "risk_jurisdiction")) ||
-                                  (activeHighlightKey === "amount" && c.highlightKey === "amount");
-                                return (
-                                  <div
-                                    key={c.id}
-                                    id={`clause-${c.highlightKey || c.id}`}
-                                    data-highlight-key={c.highlightKey}
-                                    className={`pdf-clause ${isKeyActive ? "active" : ""}`}
-                                    style={{
-                                      padding: isKeyActive ? "8px 10px" : "4px 6px",
-                                      borderRadius: "4px",
-                                      background: isKeyActive ? "rgba(254, 242, 242, 0.65)" : "transparent",
-                                      borderLeft: isKeyActive ? "3px solid #ef4444" : "3px solid transparent",
-                                      transition: "all 0.25s ease"
-                                    }}
-                                  >
-                                    <div className="pdf-clause-title">
-                                      <span style={{ color: isKeyActive ? "#dc2626" : "#0f172a" }}>
-                                        {c.num} · {c.title}
-                                      </span>
-                                      {c.isRisk && (
-                                        <span style={{
-                                          fontSize: "0.65rem",
-                                          background: "#fef2f2",
-                                          color: "#dc2626",
-                                          border: "1px solid #fecaca",
-                                          padding: "1px 6px",
-                                          borderRadius: "3px",
-                                          fontWeight: 700
-                                        }}>
-                                          ⚠️ 违背内控红线
-                                        </span>
-                                      )}
-                                      {!c.isRisk && c.riskBadge && (
-                                        <span style={{
-                                          fontSize: "0.65rem",
-                                          background: "#ecfdf5",
-                                          color: "#059669",
-                                          border: "1px solid #a7f3d0",
-                                          padding: "1px 6px",
-                                          borderRadius: "3px",
-                                          fontWeight: 700
-                                        }}>
-                                          ✓ {c.riskBadge}
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    <div style={{ color: "#334155", textAlign: "justify" }}>
-                                      {/* 智能高亮核心要素词句 */}
-                                      {c.highlightValue && c.content.includes(c.highlightValue) ? (
-                                        (() => {
-                                          const parts = c.content.split(c.highlightValue);
-                                          return (
-                                            <span>
-                                              {parts[0]}
-                                              <span
-                                                className={`pdf-highlight ${isKeyActive ? "active" : ""}`}
-                                                data-highlight-key={c.highlightKey}
-                                              >
-                                                {c.highlightValue}
-                                              </span>
-                                              {parts.slice(1).join(c.highlightValue)}
-                                            </span>
-                                          );
-                                        })()
-                                      ) : (
-                                        <span>{c.content}</span>
-                                      )}
-                                    </div>
+                            return (
+                              <React.Fragment key={page.pageNumber}>
+                                {/* 页间分割提示器 */}
+                                {pIdx > 0 && (
+                                  <div className="pdf-page-divider">
+                                    <span>— 第 {page.pageNumber} 页 / 共 {totalPages} 页 —</span>
                                   </div>
-                                );
-                              })}
-                            </div>
-                          )}
+                                )}
 
-                          {/* 资质证明类文档排版 */}
-                          {activeAttachment.category === "资质证明" && (
-                            <div style={{
-                              border: "2px solid #cbd5e1",
-                              borderRadius: "6px",
-                              padding: "20px",
-                              background: "#f8fafc",
-                              marginTop: "12px",
-                              fontSize: "0.76rem"
-                            }}>
-                              <div style={{ textAlign: "center", fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", marginBottom: "12px" }}>
-                                🏛️ 营业执照 (副本) 与食品生产许可备案
+                                <div
+                                  className="pdf-page-mock"
+                                  style={{
+                                    transform: `scale(${zoomLevel / 100})`,
+                                    transformOrigin: "top center",
+                                    transition: "transform 0.2s ease"
+                                  }}
+                                >
+                                  {/* 商密防伪水印 */}
+                                  <div className="pdf-watermark">
+                                    中润农垦商密防伪 · 业务专用
+                                  </div>
+
+                                  {/* 拟真页面页眉 */}
+                                  <div className="pdf-page-header">
+                                    <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                      <span style={{ color: "#0284c7" }}>🏛️</span>
+                                      <span>{page.headerText || "中润农垦集团采购合同标准文本 · 商密受控（密级：内部商密）"}</span>
+                                    </span>
+                                    <span className="mono" style={{ color: "#94a3b8" }}>
+                                      第 {page.pageNumber} 页 / 共 {totalPages} 页
+                                    </span>
+                                  </div>
+
+                                  {/* 仅在首页展示：合同大标题、文号、签约双方、立约前言 */}
+                                  {isFirstPage && (
+                                    <>
+                                      <div className="pdf-contract-title">
+                                        《{activeAttachment.docTitle || activeAttachment.name.replace(".pdf", "")}》
+                                      </div>
+                                      <div className="pdf-contract-subtitle mono">
+                                        {activeAttachment.docSubtitle || `合同编号：${formData.contractNo} · 内部业务档案件`}
+                                      </div>
+
+                                      <div className="pdf-parties">
+                                        <div>
+                                          <strong>甲方（采购/发包方）：</strong>
+                                          {activeAttachment.partyA || formData.partyA}
+                                        </div>
+                                        <div style={{ marginTop: "4px" }}>
+                                          <strong>乙方（供货/承接方）：</strong>
+                                          {activeAttachment.partyB || formData.supplierName}
+                                          {formData.supplierCredit && (
+                                            <span style={{ fontSize: "0.68rem", color: "#0284c7", marginLeft: "8px" }}>
+                                              (统一代码：{formData.supplierCredit.creditCode})
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {page.preamble && (
+                                        <div style={{
+                                          background: "#f8fafc",
+                                          borderLeft: "3px solid #cbd5e1",
+                                          padding: "8px 12px",
+                                          marginBottom: "16px",
+                                          fontSize: "0.74rem",
+                                          color: "#475569",
+                                          lineHeight: 1.6
+                                        }}>
+                                          <strong>【前言与立约目的】</strong> {page.preamble}
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+
+                                  {/* 该页面的条款清单 */}
+                                  {page.clauses && page.clauses.length > 0 && (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                                      {page.clauses.map((c) => {
+                                        const isKeyActive =
+                                          activeHighlightKey === c.highlightKey ||
+                                          (activeHighlightKey === "risk_prepay" && (c.highlightKey === "payment" || c.highlightKey === "risk_prepay")) ||
+                                          (activeHighlightKey === "risk_quality" && (c.highlightKey === "quality" || c.highlightKey === "risk_quality")) ||
+                                          (activeHighlightKey === "risk_jurisdiction" && (c.highlightKey === "jurisdiction" || c.highlightKey === "risk_jurisdiction")) ||
+                                          (activeHighlightKey === "amount" && c.highlightKey === "amount");
+                                        return (
+                                          <div
+                                            key={c.id}
+                                            id={`clause-${c.highlightKey || c.id}`}
+                                            data-highlight-key={c.highlightKey}
+                                            className={`pdf-clause ${isKeyActive ? "active" : ""}`}
+                                            style={{
+                                              padding: isKeyActive ? "8px 10px" : "4px 6px",
+                                              borderRadius: "4px",
+                                              background: isKeyActive ? "rgba(254, 242, 242, 0.75)" : "transparent",
+                                              borderLeft: isKeyActive ? "3px solid #ef4444" : "3px solid transparent",
+                                              transition: "all 0.25s ease"
+                                            }}
+                                          >
+                                            <div className="pdf-clause-title">
+                                              <span style={{ color: isKeyActive ? "#dc2626" : "#0f172a" }}>
+                                                {c.num} · {c.title}
+                                              </span>
+                                              {c.isRisk && (
+                                                <span style={{
+                                                  fontSize: "0.65rem",
+                                                  background: "#fef2f2",
+                                                  color: "#dc2626",
+                                                  border: "1px solid #fecaca",
+                                                  padding: "1px 6px",
+                                                  borderRadius: "3px",
+                                                  fontWeight: 700
+                                                }}>
+                                                  ⚠️ 违背内控红线
+                                                </span>
+                                              )}
+                                              {!c.isRisk && c.riskBadge && (
+                                                <span style={{
+                                                  fontSize: "0.65rem",
+                                                  background: "#ecfdf5",
+                                                  color: "#059669",
+                                                  border: "1px solid #a7f3d0",
+                                                  padding: "1px 6px",
+                                                  borderRadius: "3px",
+                                                  fontWeight: 700
+                                                }}>
+                                                  ✓ {c.riskBadge}
+                                                </span>
+                                              )}
+                                            </div>
+
+                                            <div style={{ color: "#334155", textAlign: "justify" }}>
+                                              {c.highlightValue && c.content.includes(c.highlightValue) ? (
+                                                (() => {
+                                                  const parts = c.content.split(c.highlightValue);
+                                                  return (
+                                                    <span>
+                                                      {parts[0]}
+                                                      <span
+                                                        className={`pdf-highlight ${isKeyActive ? "active" : ""}`}
+                                                        data-highlight-key={c.highlightKey}
+                                                      >
+                                                        {c.highlightValue}
+                                                      </span>
+                                                      {parts.slice(1).join(c.highlightValue)}
+                                                    </span>
+                                                  );
+                                                })()
+                                              ) : (
+                                                <span>{c.content}</span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+
+                                  {/* 该页面的明细表格 */}
+                                  {page.tableData && (
+                                    <div style={{ marginBottom: "16px" }}>
+                                      <table className="pdf-table">
+                                        <thead>
+                                          <tr>
+                                            {page.tableData.headers.map((h, i) => (
+                                              <th key={i}>{h}</th>
+                                            ))}
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {page.tableData.rows.map((row, rIdx) => (
+                                            <tr key={rIdx}>
+                                              {row.map((cell, cIdx) => (
+                                                <td key={cIdx} className={cIdx === 0 || typeof cell === "number" ? "mono" : ""}>
+                                                  {cell}
+                                                </td>
+                                              ))}
+                                            </tr>
+                                          ))}
+                                          {page.tableData.totalRow && (
+                                            <tr className="total-row">
+                                              {page.tableData.totalRow.map((cell, cIdx) => (
+                                                <td key={cIdx} className={cIdx === 0 || typeof cell === "number" ? "mono" : ""}>
+                                                  {cell}
+                                                </td>
+                                              ))}
+                                            </tr>
+                                          )}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
+
+                                  {/* 盖章与落款 (如果该页显式指定 showSeal 或为合同末页) */}
+                                  {(page.showSeal || isLastPage) && (
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "32px", paddingTop: "16px", borderTop: "1px dashed #e2e8f0" }}>
+                                      <div style={{ fontSize: "0.72rem", color: "#64748b" }}>
+                                        <div>原件存档位置：中润农垦集团合同档案库</div>
+                                        <div className="mono" style={{ marginTop: "2px" }}>SHA256: 8a4f91b7...c02e190d</div>
+                                        <div style={{ marginTop: "2px" }}>签约日期：{activeAttachment.signDate || "2026年09月05日"}</div>
+                                      </div>
+
+                                      <div className="pdf-seal">
+                                        <div style={{ padding: "0 4px" }}>
+                                          {activeAttachment.sealText || `${formData.supplierName} 业务专用章`}
+                                        </div>
+                                        <div style={{ fontSize: "0.52rem", opacity: 0.8, marginTop: "2px" }}>
+                                          电子签章认证有效
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* 拟真页面页脚 */}
+                                  <div className="pdf-page-footer">
+                                    <span>中润农垦法务审计受控编号：{formData.contractNo}</span>
+                                    <span className="mono">{page.footerNote || `第 ${page.pageNumber} 页 / 共 ${totalPages} 页`}</span>
+                                  </div>
+                                </div>
+                              </React.Fragment>
+                            );
+                          })
+                        ) : (
+                          /* 单页文档 (明细表 / 营业执照 / 补充协议等) 备用渲染 */
+                          <div
+                            className="pdf-page-mock"
+                            style={{
+                              transform: `scale(${zoomLevel / 100})`,
+                              transformOrigin: "top center",
+                              transition: "transform 0.2s ease"
+                            }}
+                          >
+                            <div className="pdf-watermark">中润农垦商密防伪 · 业务专用</div>
+                            <div className="pdf-page-header">
+                              <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                <span style={{ color: "#0284c7" }}>🏛️</span>
+                                <span>{activeAttachment.name}</span>
+                              </span>
+                              <span className="mono" style={{ color: "#94a3b8" }}>第 1 页 / 共 1 页</span>
+                            </div>
+
+                            <div className="pdf-contract-title">
+                              《{activeAttachment.docTitle || activeAttachment.name.replace(".pdf", "")}》
+                            </div>
+                            <div className="pdf-contract-subtitle mono">
+                              {activeAttachment.docSubtitle || `合同编号：${formData.contractNo} · 内部业务档案件`}
+                            </div>
+
+                            <div className="pdf-parties">
+                              <div>
+                                <strong>甲方（采购/发包方）：</strong>
+                                {activeAttachment.partyA || formData.partyA}
                               </div>
-                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", lineHeight: 1.6 }}>
-                                <div>统一社会信用代码：<span className="mono" style={{ fontWeight: 700, color: "#0284c7" }}>{formData.supplierCredit.creditCode}</span></div>
-                                <div>法定代表人：<strong>{formData.supplierCredit.legalPerson}</strong></div>
-                                <div>注册资本：<strong>{formData.supplierCredit.registeredCapital}</strong></div>
-                                <div>资信合规评级：<span style={{ color: "#059669", fontWeight: 700 }}>AAA 级战略优选</span></div>
-                                <div style={{ gridColumn: "span 2" }}>许可生产范围：食用植物油脂大宗原油加工生产、精炼分装及配送</div>
-                                <div style={{ gridColumn: "span 2", color: "#64748b" }}>发证机构：江苏省市场监督管理局 · 状态：存续在营</div>
+                              <div style={{ marginTop: "4px" }}>
+                                <strong>乙方（供货/承接方）：</strong>
+                                {activeAttachment.partyB || formData.supplierName}
+                                {formData.supplierCredit && (
+                                  <span style={{ fontSize: "0.68rem", color: "#0284c7", marginLeft: "8px" }}>
+                                    (统一代码：{formData.supplierCredit.creditCode})
+                                  </span>
+                                )}
                               </div>
                             </div>
-                          )}
 
-                          {/* 底部盖章与日期落款 */}
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "32px", paddingTop: "16px", borderTop: "1px dashed #e2e8f0" }}>
-                            <div style={{ fontSize: "0.72rem", color: "#64748b" }}>
-                              <div>原件存档位置：中润农垦集团合同档案库</div>
-                              <div className="mono" style={{ marginTop: "2px" }}>SHA256: 8a4f91b7...c02e190d</div>
-                              <div style={{ marginTop: "2px" }}>签约日期：{activeAttachment.signDate || "2026年09月05日"}</div>
+                            {activeAttachment.tableData && (
+                              <div style={{ marginBottom: "16px" }}>
+                                <table className="pdf-table">
+                                  <thead>
+                                    <tr>
+                                      {activeAttachment.tableData.headers.map((h, i) => (
+                                        <th key={i}>{h}</th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {activeAttachment.tableData.rows.map((row, rIdx) => (
+                                      <tr key={rIdx}>
+                                        {row.map((cell, cIdx) => (
+                                          <td key={cIdx} className={cIdx === 0 || typeof cell === "number" ? "mono" : ""}>
+                                            {cell}
+                                          </td>
+                                        ))}
+                                      </tr>
+                                    ))}
+                                    {activeAttachment.tableData.totalRow && (
+                                      <tr className="total-row">
+                                        {activeAttachment.tableData.totalRow.map((cell, cIdx) => (
+                                          <td key={cIdx} className={cIdx === 0 || typeof cell === "number" ? "mono" : ""}>
+                                            {cell}
+                                          </td>
+                                        ))}
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+
+                            {activeAttachment.clauses && activeAttachment.clauses.length > 0 && (
+                              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                                {activeAttachment.clauses.map((c) => {
+                                  const isKeyActive =
+                                    activeHighlightKey === c.highlightKey ||
+                                    (activeHighlightKey === "risk_prepay" && (c.highlightKey === "payment" || c.highlightKey === "risk_prepay")) ||
+                                    (activeHighlightKey === "risk_quality" && (c.highlightKey === "quality" || c.highlightKey === "risk_quality")) ||
+                                    (activeHighlightKey === "risk_jurisdiction" && (c.highlightKey === "jurisdiction" || c.highlightKey === "risk_jurisdiction")) ||
+                                    (activeHighlightKey === "amount" && c.highlightKey === "amount");
+                                  return (
+                                    <div
+                                      key={c.id}
+                                      id={`clause-${c.highlightKey || c.id}`}
+                                      data-highlight-key={c.highlightKey}
+                                      className={`pdf-clause ${isKeyActive ? "active" : ""}`}
+                                      style={{
+                                        padding: isKeyActive ? "8px 10px" : "4px 6px",
+                                        borderRadius: "4px",
+                                        background: isKeyActive ? "rgba(254, 242, 242, 0.65)" : "transparent",
+                                        borderLeft: isKeyActive ? "3px solid #ef4444" : "3px solid transparent",
+                                        transition: "all 0.25s ease"
+                                      }}
+                                    >
+                                      <div className="pdf-clause-title">
+                                        <span style={{ color: isKeyActive ? "#dc2626" : "#0f172a" }}>
+                                          {c.num} · {c.title}
+                                        </span>
+                                        {c.isRisk && (
+                                          <span style={{
+                                            fontSize: "0.65rem",
+                                            background: "#fef2f2",
+                                            color: "#dc2626",
+                                            border: "1px solid #fecaca",
+                                            padding: "1px 6px",
+                                            borderRadius: "3px",
+                                            fontWeight: 700
+                                          }}>
+                                            ⚠️ 违背内控红线
+                                          </span>
+                                        )}
+                                        {!c.isRisk && c.riskBadge && (
+                                          <span style={{
+                                            fontSize: "0.65rem",
+                                            background: "#ecfdf5",
+                                            color: "#059669",
+                                            border: "1px solid #a7f3d0",
+                                            padding: "1px 6px",
+                                            borderRadius: "3px",
+                                            fontWeight: 700
+                                          }}>
+                                            ✓ {c.riskBadge}
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      <div style={{ color: "#334155", textAlign: "justify" }}>
+                                        {c.highlightValue && c.content.includes(c.highlightValue) ? (
+                                          (() => {
+                                            const parts = c.content.split(c.highlightValue);
+                                            return (
+                                              <span>
+                                                {parts[0]}
+                                                <span
+                                                  className={`pdf-highlight ${isKeyActive ? "active" : ""}`}
+                                                  data-highlight-key={c.highlightKey}
+                                                >
+                                                  {c.highlightValue}
+                                                </span>
+                                                {parts.slice(1).join(c.highlightValue)}
+                                              </span>
+                                            );
+                                          })()
+                                        ) : (
+                                          <span>{c.content}</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {activeAttachment.category === "资质证明" && (
+                              <div style={{
+                                border: "2px solid #cbd5e1",
+                                borderRadius: "6px",
+                                padding: "20px",
+                                background: "#f8fafc",
+                                marginTop: "12px",
+                                fontSize: "0.76rem"
+                              }}>
+                                <div style={{ textAlign: "center", fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", marginBottom: "12px" }}>
+                                  🏛️ 营业执照 (副本) 与食品生产许可备案
+                                </div>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", lineHeight: 1.6 }}>
+                                  <div>统一社会信用代码：<span className="mono" style={{ fontWeight: 700, color: "#0284c7" }}>{formData.supplierCredit.creditCode}</span></div>
+                                  <div>法定代表人：<strong>{formData.supplierCredit.legalPerson}</strong></div>
+                                  <div>注册资本：<strong>{formData.supplierCredit.registeredCapital}</strong></div>
+                                  <div>资信合规评级：<span style={{ color: "#059669", fontWeight: 700 }}>AAA 级战略优选</span></div>
+                                  <div style={{ gridColumn: "span 2" }}>许可生产范围：食用植物油脂大宗原油加工生产、精炼分装及配送</div>
+                                  <div style={{ gridColumn: "span 2", color: "#64748b" }}>发证机构：江苏省市场监督管理局 · 状态：存续在营</div>
+                                </div>
+                              </div>
+                            )}
+
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "32px", paddingTop: "16px", borderTop: "1px dashed #e2e8f0" }}>
+                              <div style={{ fontSize: "0.72rem", color: "#64748b" }}>
+                                <div>原件存档位置：中润农垦集团合同档案库</div>
+                                <div className="mono" style={{ marginTop: "2px" }}>SHA256: 8a4f91b7...c02e190d</div>
+                                <div style={{ marginTop: "2px" }}>签约日期：{activeAttachment.signDate || "2026年09月05日"}</div>
+                              </div>
+
+                              <div className="pdf-seal">
+                                <div style={{ padding: "0 4px" }}>
+                                  {activeAttachment.sealText || `${formData.supplierName} 业务专用章`}
+                                </div>
+                                <div style={{ fontSize: "0.52rem", opacity: 0.8, marginTop: "2px" }}>
+                                  电子签章认证有效
+                                </div>
+                              </div>
                             </div>
 
-                            {/* 拟真红色公章 */}
-                            <div className="pdf-seal">
-                              <div style={{ padding: "0 4px" }}>
-                                {activeAttachment.sealText || `${formData.supplierName} 业务专用章`}
-                              </div>
-                              <div style={{ fontSize: "0.52rem", opacity: 0.8, marginTop: "2px" }}>
-                                电子签章认证有效
-                              </div>
+                            <div className="pdf-page-footer">
+                              <span>中润农垦法务审计受控合同编号：{formData.contractNo}</span>
+                              <span className="mono">第 1 页 / 共 1 页</span>
                             </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
 
@@ -1573,10 +2429,14 @@ export default function FdeEnterpriseApp() {
                           </div>
 
                           <div style={{ display: "flex", gap: "12px", textAlign: "right", background: "#ffffff", padding: "6px 12px", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
-                            <div>
-                              <div style={{ fontSize: "0.68rem", color: "#64748b" }}>审查耗时</div>
-                              <div className="mono" style={{ fontSize: "0.84rem", fontWeight: 700, color: "#0f172a" }}>
-                                {analysisResult.executionStats.durationMs}ms
+                            <div
+                              onClick={handleStartDeepScan}
+                              style={{ cursor: "pointer" }}
+                              title="点击重新启动 60~75 秒全流程多模态深度合规审查推演管道"
+                            >
+                              <div style={{ fontSize: "0.68rem", color: "#0284c7", fontWeight: 600 }}>审查耗时 ⚡</div>
+                              <div className="mono" style={{ fontSize: "0.84rem", fontWeight: 700, color: "#0284c7" }}>
+                                71.9s (约1.2分钟)
                               </div>
                             </div>
                             <div>
@@ -2038,12 +2898,19 @@ export default function FdeEnterpriseApp() {
 
                     {/* 4 项量化指标卡片 */}
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginTop: "14px" }}>
-                      <div style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
-                        <div style={{ fontSize: "0.7rem", color: "#64748b" }}>审查分析全流程耗时</div>
-                        <div className="mono" style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0284c7", marginTop: "2px" }}>
-                          {analysisResult?.executionStats.durationMs || 380} ms
+                      <div
+                        onClick={handleStartDeepScan}
+                        style={{ background: "#f0f9ff", padding: "10px 14px", borderRadius: "6px", border: "1px solid #bae6fd", cursor: "pointer" }}
+                        title="点击启动 60~75 秒全要素深度审查仿真推演"
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: "0.7rem", color: "#0369a1", fontWeight: 600 }}>审查全流程耗时</span>
+                          <span style={{ fontSize: "0.68rem", color: "#0284c7" }}>⚡ 重新推演</span>
                         </div>
-                        <div style={{ fontSize: "0.66rem", color: "#94a3b8" }}>秒级完成24项深度要素碰撞</div>
+                        <div className="mono" style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0284c7", marginTop: "2px" }}>
+                          {((analysisResult?.executionStats.durationMs || 71900) / 1000).toFixed(1)} 秒 (约 1.2 分钟)
+                        </div>
+                        <div style={{ fontSize: "0.66rem", color: "#0284c7" }}>全流程多模态深度排查 · 提效 97.5%</div>
                       </div>
 
                       <div style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
@@ -2107,9 +2974,9 @@ export default function FdeEnterpriseApp() {
                             </span>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>2026-09-05 14:32:00.105</span>
+                            <span className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>2026-09-05 14:32:00</span>
                             <span style={{ fontSize: "0.7rem", color: "#059669", background: "#ecfdf5", padding: "1px 6px", borderRadius: "3px", fontWeight: 600 }}>
-                              PASS · 32ms
+                              PASS · 10.5s
                             </span>
                           </div>
                         </div>
@@ -2161,9 +3028,9 @@ export default function FdeEnterpriseApp() {
                             </span>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>2026-09-05 14:32:00.137</span>
+                            <span className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>2026-09-05 14:32:11</span>
                             <span style={{ fontSize: "0.7rem", color: "#059669", background: "#ecfdf5", padding: "1px 6px", borderRadius: "3px", fontWeight: 600 }}>
-                              PASS · 176ms
+                              PASS · 24.6s
                             </span>
                           </div>
                         </div>
@@ -2213,7 +3080,7 @@ export default function FdeEnterpriseApp() {
                             </span>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>2026-09-05 14:32:00.313</span>
+                            <span className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>2026-09-05 14:32:36</span>
                             <span style={{
                               fontSize: "0.7rem",
                               color: analysisResult?.crossChecks.some(c => c.status === "MISMATCH") ? "#d97706" : "#059669",
@@ -2222,7 +3089,7 @@ export default function FdeEnterpriseApp() {
                               borderRadius: "3px",
                               fontWeight: 600
                             }}>
-                              {analysisResult?.crossChecks.some(c => c.status === "MISMATCH") ? "WARN · 68ms" : "PASS · 68ms"}
+                              {analysisResult?.crossChecks.some(c => c.status === "MISMATCH") ? "WARN · 12.8s" : "PASS · 12.8s"}
                             </span>
                           </div>
                         </div>
@@ -2293,9 +3160,9 @@ export default function FdeEnterpriseApp() {
                             </span>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>2026-09-05 14:32:00.381</span>
+                            <span className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>2026-09-05 14:32:49</span>
                             <span style={{ fontSize: "0.7rem", color: "#059669", background: "#ecfdf5", padding: "1px 6px", borderRadius: "3px", fontWeight: 600 }}>
-                              PASS · 54ms
+                              PASS · 14.2s
                             </span>
                           </div>
                         </div>
@@ -2345,9 +3212,9 @@ export default function FdeEnterpriseApp() {
                             </span>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>2026-09-05 14:32:00.435</span>
+                            <span className="mono" style={{ fontSize: "0.72rem", color: "#64748b" }}>2026-09-05 14:33:03</span>
                             <span style={{ fontSize: "0.7rem", color: "#059669", background: "#ecfdf5", padding: "1px 6px", borderRadius: "3px", fontWeight: 600 }}>
-                              PASS · 45ms
+                              PASS · 9.8s
                             </span>
                           </div>
                         </div>
@@ -2408,7 +3275,7 @@ export default function FdeEnterpriseApp() {
                               borderRadius: "3px",
                               fontWeight: 600
                             }}>
-                              {signedCertificate ? "PASS · 24ms" : "PENDING"}
+                              {signedCertificate ? "PASS · 3.2s" : "PENDING"}
                             </span>
                           </div>
                         </div>
@@ -2492,6 +3359,88 @@ export default function FdeEnterpriseApp() {
           {globalNav === "AUDIT_LEDGER" && (
             <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               
+              {/* 风控大盘 KPI 看板 (顶部 4 维核心风控量化指标卡) */}
+              <div className="kpi-grid">
+                <div className="kpi-card kpi-primary">
+                  <div className="kpi-title">
+                    <span>💰</span> 累计审查标的总额
+                  </div>
+                  <div className="kpi-value">
+                    ¥{totalFunds.toLocaleString()}
+                  </div>
+                  <div className="kpi-sub">
+                    <span>全周期护航 {tasks.length} 项核心业务条线资金穿透</span>
+                  </div>
+                </div>
+
+                <div className="kpi-card kpi-success">
+                  <div className="kpi-title">
+                    <span>📊</span> 审结归档办结率
+                  </div>
+                  <div className="kpi-value">
+                    {completionRate}%
+                  </div>
+                  <div className="kpi-sub">
+                    <span>已办结 <strong style={{ color: "#059669" }}>{approvedCount}</strong> 笔 / 全池 <strong>{tasks.length}</strong> 笔 · CFCA存证</span>
+                  </div>
+                </div>
+
+                <div className="kpi-card kpi-warning">
+                  <div className="kpi-title">
+                    <span>🛡️</span> 挽损与合规拦截估算
+                  </div>
+                  <div className="kpi-value" style={{ color: "#d97706" }}>
+                    ¥{savedEstimate.toLocaleString()}
+                  </div>
+                  <div className="kpi-sub">
+                    <span>阻断 <strong>2</strong> 笔高危拆单 · 纠偏 <strong>4</strong> 笔勾稽差异</span>
+                  </div>
+                </div>
+
+                <div className="kpi-card kpi-purple">
+                  <div className="kpi-title">
+                    <span>⚡</span> AI 全要素多模态初审平均耗时
+                  </div>
+                  <div className="kpi-value" style={{ color: "#7c3aed" }}>
+                    1.2 分钟 <span style={{ fontSize: "13px", fontWeight: 500, color: "#64748b" }}>(71.9s)</span>
+                  </div>
+                  <div className="kpi-sub">
+                    <span>对比传统人工 45~60 分钟 · 效率提升 97.5%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 制度红线拦截高频榜 TOP 3 */}
+              <div style={{
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: "8px",
+                padding: "10px 16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "12px",
+                flexWrap: "wrap",
+                fontSize: "0.76rem",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.03)"
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 700, color: "#0f172a" }}>
+                  <span style={{ color: "#dc2626" }}>🔥</span>
+                  <span>制度红线拦截高频榜 TOP 3：</span>
+                </div>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                  <span style={{ background: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca", padding: "2px 8px", borderRadius: "4px" }}>
+                    1. 《采购管理办法》第18条：超百万元须党委会纪要 (拦截 2 次)
+                  </span>
+                  <span style={{ background: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca", padding: "2px 8px", borderRadius: "4px" }}>
+                    2. 《招标投标法实施条例》第27条：严禁拆单化整为零避公开招标 (拦截 2 次)
+                  </span>
+                  <span style={{ background: "#fffbeb", color: "#b45309", border: "1px solid #fde68a", padding: "2px 8px", borderRadius: "4px" }}>
+                    3. 《食品质量合规规范》第14条：进厂合格率底线不得低于99.8% (拦截 1 次)
+                  </span>
+                </div>
+              </div>
+
               <div className="glass-panel" style={{ padding: "18px 20px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", gap: "16px", flexWrap: "wrap" }}>
                   <div>
@@ -2547,6 +3496,28 @@ export default function FdeEnterpriseApp() {
                       value={ledgerSearchKeyword}
                       onChange={(e) => setLedgerSearchKeyword(e.target.value)}
                     />
+
+                    {/* 导出台账 Excel / CSV 按钮 */}
+                    <button
+                      type="button"
+                      onClick={handleExportLedgerToCsv}
+                      className="btn-secondary"
+                      style={{
+                        padding: "5px 14px",
+                        fontSize: "0.78rem",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        background: "#ffffff",
+                        borderColor: "#cbd5e1",
+                        color: "#0f172a",
+                        fontWeight: 600,
+                        boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+                      }}
+                      title="导出符合国资委审计要求的标准台账 Excel/CSV 文件"
+                    >
+                      <span>📥</span> 导出台账 (Excel/CSV)
+                    </button>
                   </div>
                 </div>
 
@@ -3623,6 +4594,408 @@ export default function FdeEnterpriseApp() {
                 关闭
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 弹窗：AI 全要素多模态深度合规审查管道推演 (FDE Deep Audit Pipeline Modal) */}
+      {/* 真实国资 60~75 秒审查周期仿真，含实时时钟、5阶段推演卡片、流式终端与演示极速通道 */}
+      {/* ========================================================================= */}
+      {deepScanOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(15, 23, 42, 0.72)",
+            backdropFilter: "blur(5px)",
+            display: "grid",
+            placeItems: "center",
+            zIndex: 10000,
+            padding: "20px"
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "880px",
+              background: "#ffffff",
+              borderRadius: "12px",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
+              border: "1px solid #cbd5e1",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              maxHeight: "92vh"
+            }}
+          >
+            {/* 顶栏：标题与倍速/演示跳过控制 */}
+            <div
+              style={{
+                padding: "16px 24px",
+                background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+                color: "#ffffff",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderBottom: "1px solid #334155"
+              }}
+            >
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span
+                    style={{
+                      background: "rgba(56, 189, 248, 0.2)",
+                      border: "1px solid #38bdf8",
+                      color: "#38bdf8",
+                      fontSize: "0.68rem",
+                      fontWeight: 700,
+                      padding: "2px 8px",
+                      borderRadius: "4px"
+                    }}
+                  >
+                    FDE ENGINE 4.0
+                  </span>
+                  <h3 style={{ fontSize: "1.05rem", fontWeight: 700, margin: 0, letterSpacing: "0.5px" }}>
+                    国资全要素多模态深度合规审查管道
+                  </h3>
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "3px" }}>
+                  正在对标 11 部国资内控规章 · 剖析 3 页随附 PDF 扫描原件 · 提取 24 项实体要素进行双向勾稽
+                </div>
+              </div>
+
+              {/* 右侧控制：倍速切换与演示极速通道 */}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                {!deepScanCompleted && (
+                  <div style={{ display: "flex", alignItems: "center", background: "#0f172a", borderRadius: "6px", padding: "2px", border: "1px solid #475569" }}>
+                    <button
+                      type="button"
+                      onClick={() => setDeepScanSpeed(1)}
+                      style={{
+                        padding: "3px 8px",
+                        fontSize: "0.7rem",
+                        borderRadius: "4px",
+                        border: "none",
+                        cursor: "pointer",
+                        background: deepScanSpeed === 1 ? "#0284c7" : "transparent",
+                        color: deepScanSpeed === 1 ? "#ffffff" : "#94a3b8",
+                        fontWeight: deepScanSpeed === 1 ? 700 : 400
+                      }}
+                      title="真实国资 60~75 秒审查节奏"
+                    >
+                      1x 真实 (72s)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeepScanSpeed(5)}
+                      style={{
+                        padding: "3px 8px",
+                        fontSize: "0.7rem",
+                        borderRadius: "4px",
+                        border: "none",
+                        cursor: "pointer",
+                        background: deepScanSpeed === 5 ? "#0284c7" : "transparent",
+                        color: deepScanSpeed === 5 ? "#ffffff" : "#94a3b8",
+                        fontWeight: deepScanSpeed === 5 ? 700 : 400
+                      }}
+                      title="5 倍速快速推演 (~14秒)"
+                    >
+                      5x 快速
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeepScanSpeed(10)}
+                      style={{
+                        padding: "3px 8px",
+                        fontSize: "0.7rem",
+                        borderRadius: "4px",
+                        border: "none",
+                        cursor: "pointer",
+                        background: deepScanSpeed === 10 ? "#0284c7" : "transparent",
+                        color: deepScanSpeed === 10 ? "#ffffff" : "#94a3b8",
+                        fontWeight: deepScanSpeed === 10 ? 700 : 400
+                      }}
+                      title="10 倍速极速推演 (~7秒)"
+                    >
+                      10x 极速
+                    </button>
+                  </div>
+                )}
+
+                {!deepScanCompleted && (
+                  <button
+                    type="button"
+                    onClick={handleFastForwardDeepScan}
+                    className="glow-btn"
+                    style={{
+                      padding: "4px 12px",
+                      fontSize: "0.74rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                    title="跳过等待，立即完成审查"
+                  >
+                    <span>⚡</span> 演示模式：立即完成
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleCloseDeepScan}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "1.3rem",
+                    cursor: "pointer",
+                    color: "#94a3b8",
+                    padding: "0 4px",
+                    lineHeight: 1
+                  }}
+                  title="关闭"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* 内容区 */}
+            <div style={{ padding: "20px 24px", overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: "16px" }}>
+
+              {/* 实时进度与时钟条 */}
+              <div style={{ background: "#f8fafc", padding: "14px 18px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0f172a" }}>
+                      {deepScanCompleted ? "✅ 全流程审查已完成" : `正在执行: 阶段 [${deepScanStage + 1}/5] · ${AUDIT_PIPELINE_STAGES[deepScanStage]?.name}`}
+                    </span>
+                    {!deepScanCompleted && (
+                      <span className="pulse-tag" style={{ fontSize: "0.68rem", background: "#e0f2fe", color: "#0284c7", border: "1px solid #bae6fd", padding: "1px 6px", borderRadius: "4px" }}>
+                        深度推理中
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px", fontSize: "0.78rem" }}>
+                    <span style={{ color: "#64748b" }}>
+                      已耗时: <strong className="mono" style={{ color: "#0284c7", fontSize: "0.92rem" }}>{formatPipelineTime(deepScanElapsedSec)}</strong> / 预计 01:12 (71.9s)
+                    </span>
+                    <span className="mono" style={{ fontWeight: 700, fontSize: "0.95rem", color: deepScanCompleted ? "#10b981" : "#0284c7" }}>
+                      {deepScanProgress}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* 动态进度条 */}
+                <div style={{ width: "100%", height: "8px", background: "#e2e8f0", borderRadius: "999px", overflow: "hidden" }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${deepScanProgress}%`,
+                      background: deepScanCompleted
+                        ? "linear-gradient(90deg, #10b981, #059669)"
+                        : "linear-gradient(90deg, #0284c7 0%, #6366f1 70%, #10b981 100%)",
+                      transition: "width 0.25s ease-out",
+                      boxShadow: "0 0 10px rgba(2, 132, 199, 0.4)"
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* 5 大阶段时序卡片看板 */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px" }}>
+                {AUDIT_PIPELINE_STAGES.map((s, idx) => {
+                  const isDone = deepScanCompleted || deepScanStage > idx;
+                  const isCurrent = !deepScanCompleted && deepScanStage === idx;
+                  const isPending = !deepScanCompleted && deepScanStage < idx;
+
+                  return (
+                    <div
+                      key={s.stage}
+                      style={{
+                        padding: "10px 10px",
+                        borderRadius: "8px",
+                        border: isDone
+                          ? "1px solid #86efac"
+                          : isCurrent
+                          ? "1.5px solid #0284c7"
+                          : "1px solid #e2e8f0",
+                        background: isDone
+                          ? "#f0fdf4"
+                          : isCurrent
+                          ? "#f0f9ff"
+                          : "#f8fafc",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        position: "relative",
+                        transition: "all 0.3s ease"
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "1.1rem" }}>{s.icon}</span>
+                        {isDone && (
+                          <span style={{ fontSize: "0.65rem", color: "#16a34a", fontWeight: 700 }}>✓ 已完成</span>
+                        )}
+                        {isCurrent && (
+                          <span style={{ fontSize: "0.65rem", color: "#0284c7", fontWeight: 700, animation: "pulse 1.5s infinite" }}>
+                            ⚡ 推演中
+                          </span>
+                        )}
+                        {isPending && (
+                          <span style={{ fontSize: "0.65rem", color: "#94a3b8" }}>⏳ 排队中</span>
+                        )}
+                      </div>
+
+                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: isCurrent ? "#0284c7" : "#0f172a", lineHeight: 1.2 }}>
+                        {s.name}
+                      </div>
+
+                      <div style={{ fontSize: "0.65rem", color: "#64748b" }}>
+                        耗时 ~{s.timeRange}
+                      </div>
+
+                      <div style={{ fontSize: "0.66rem", color: "#475569", lineHeight: 1.3, marginTop: "2px" }}>
+                        {s.desc}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 实时终端审计日志流 (Terminal Console) */}
+              <div
+                style={{
+                  background: "#090d16",
+                  borderRadius: "8px",
+                  border: "1px solid #1e293b",
+                  padding: "12px 16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)"
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", borderBottom: "1px solid #1e293b", paddingBottom: "6px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: deepScanCompleted ? "#10b981" : "#38bdf8", boxShadow: "0 0 6px currentColor" }} />
+                    <span className="mono" style={{ fontSize: "0.72rem", color: "#94a3b8", fontWeight: 600 }}>
+                      ENGINE TRACE STREAM · 实时多模态解析日志
+                    </span>
+                  </div>
+                  <span className="mono" style={{ fontSize: "0.68rem", color: "#64748b" }}>
+                    SM3 HASH ACCUMULATOR ACTIVE
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    maxHeight: "150px",
+                    overflowY: "auto",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px",
+                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                    fontSize: "0.72rem",
+                    lineHeight: 1.5
+                  }}
+                >
+                  {AUDIT_PIPELINE_STAGES.flatMap((s) => s.logs)
+                    .filter((l) => deepScanCompleted || l.time <= deepScanElapsedSec)
+                    .map((log, lIdx) => {
+                      let textColor = "#38bdf8"; // info
+                      if (log.level === "success") textColor = "#4ade80";
+                      if (log.level === "warn") textColor = "#fbbf24";
+                      if (log.level === "danger") textColor = "#f87171";
+
+                      return (
+                        <div key={lIdx} style={{ color: textColor }}>
+                          {log.text}
+                        </div>
+                      );
+                    })}
+                  {!deepScanCompleted && (
+                    <div style={{ color: "#38bdf8", display: "flex", alignItems: "center", gap: "4px" }}>
+                      <span>&gt; 正在实时比对规章语义向量库与随附印章防伪切片...</span>
+                      <span style={{ animation: "blink 1s infinite" }}>▋</span>
+                    </div>
+                  )}
+                  <div ref={terminalBottomRef} />
+                </div>
+              </div>
+
+              {/* 完成状态卡片 */}
+              {deepScanCompleted && (
+                <div
+                  style={{
+                    background: "#ecfdf5",
+                    border: "1px solid #6ee7b7",
+                    borderRadius: "8px",
+                    padding: "12px 18px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#065f46" }}>
+                      🎉 全流程 AI 审查推演闭环完成！总耗时 71.9s (约 1.2 分钟)
+                    </div>
+                    <div style={{ fontSize: "0.74rem", color: "#047857", marginTop: "2px" }}>
+                      已检出 1 项规章红线触碰、2 项跨单据勾稽瑕疵；已智能匹配生成三角色签批初审意见。
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCloseDeepScan}
+                    className="glow-btn"
+                    style={{ padding: "6px 16px", fontSize: "0.8rem", whiteSpace: "nowrap" }}
+                  >
+                    查看审查结果
+                  </button>
+                </div>
+              )}
+
+            </div>
+
+            {/* 底栏 */}
+            <div
+              style={{
+                padding: "12px 24px",
+                background: "#f8fafc",
+                borderTop: "1px solid #e2e8f0",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}
+            >
+              <span style={{ fontSize: "0.74rem", color: "#64748b" }}>
+                国企合规审查标准：依据《国资委央企责任追究实施办法》与《三重一大实施细则》严谨推演
+              </span>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  type="button"
+                  onClick={handleCloseDeepScan}
+                  className="btn-secondary"
+                  style={{ padding: "5px 14px", fontSize: "0.78rem" }}
+                >
+                  {deepScanCompleted ? "关闭" : "后台继续推演"}
+                </button>
+                {!deepScanCompleted && (
+                  <button
+                    type="button"
+                    onClick={handleFastForwardDeepScan}
+                    className="glow-btn"
+                    style={{ padding: "5px 14px", fontSize: "0.78rem" }}
+                  >
+                    ⚡ 跳过等待 (演示完成)
+                  </button>
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
       )}

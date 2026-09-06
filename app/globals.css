@@ -534,6 +534,57 @@ code, pre, .mono {
   gap: 10px;
 }
 
+.pdf-attachment-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 440px;
+  min-width: 200px;
+}
+
+.pdf-attachment-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: #1e293b;
+  color: #f8fafc;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  padding: 5px 32px 5px 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.pdf-attachment-select:hover {
+  background: #334155;
+  border-color: #64748b;
+}
+
+.pdf-attachment-select:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.35);
+}
+
+.pdf-attachment-select-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+
 .pdf-attachment-tab {
   display: inline-flex;
   align-items: center;
@@ -727,4 +778,178 @@ code, pre, .mono {
   font-size: 1.1rem;
   color: #dc2626;
   margin-bottom: 2px;
+}
+
+/* ========================================================================= */
+/* 多页连续滚动 PDF 页面增强规范                                            */
+/* ========================================================================= */
+.pdf-page-header {
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.68rem;
+  color: #64748b;
+  padding-bottom: 8px;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pdf-page-footer {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+  margin-top: 24px;
+  font-size: 0.65rem;
+  color: #94a3b8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pdf-page-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0;
+  width: 100%;
+}
+
+.pdf-page-divider span {
+  background: #1e293b;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  padding: 3px 16px;
+  border-radius: 9999px;
+  border: 1px solid #334155;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.5px;
+}
+
+/* ========================================================================= */
+/* 待办审批池：底部悬浮批量操作栏                                           */
+/* ========================================================================= */
+.batch-action-bar {
+  position: sticky;
+  bottom: 16px;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  border-radius: 10px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.batch-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ========================================================================= */
+/* 审批台账：风控大盘 KPI 看板与数据卡片                                    */
+/* ========================================================================= */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1200px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #cbd5e1;
+}
+
+.kpi-card.kpi-primary::before {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+}
+
+.kpi-card.kpi-success::before {
+  background: linear-gradient(90deg, #059669, #34d399);
+}
+
+.kpi-card.kpi-warning::before {
+  background: linear-gradient(90deg, #d97706, #fbbf24);
+}
+
+.kpi-card.kpi-purple::before {
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+}
+
+.kpi-title {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kpi-value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 6px 0 2px 0;
+  font-family: var(--font-mono, monospace);
+  letter-spacing: -0.5px;
+}
+
+.kpi-sub {
+  font-size: 0.68rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
