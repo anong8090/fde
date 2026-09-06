@@ -505,3 +505,226 @@ code, pre, .mono {
 .animate-fade-in {
   animation: fadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ======================================================================= */
+/* 拟真合同原件预览舱样式 (智采云高拟真合同排版与多附件支持)             */
+/* ======================================================================= */
+
+.pdf-viewer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 680px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.pdf-viewer-header {
+  background: #0f172a;
+  padding: 10px 14px;
+  border-bottom: 1px solid #334155;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #f1f5f9;
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.pdf-attachment-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 5px;
+  font-size: 0.74rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #94a3b8;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.pdf-attachment-tab:hover {
+  background: #334155;
+  color: #f8fafc;
+  border-color: #64748b;
+}
+
+.pdf-attachment-tab.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.4);
+}
+
+.pdf-document-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  scroll-behavior: smooth;
+  background: #334155;
+}
+
+.pdf-page-mock {
+  width: 100%;
+  max-width: 650px;
+  min-height: 600px;
+  background: #ffffff;
+  color: #1e293b;
+  padding: 36px 32px 40px 32px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  position: relative;
+  border-radius: 4px;
+  font-size: 0.76rem;
+  line-height: 1.7;
+}
+
+.pdf-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-25deg);
+  font-size: 1.85rem;
+  color: rgba(203, 213, 225, 0.45);
+  font-weight: 800;
+  pointer-events: none;
+  letter-spacing: 5px;
+  white-space: nowrap;
+  user-select: none;
+  z-index: 1;
+}
+
+.pdf-contract-title {
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.pdf-contract-subtitle {
+  text-align: center;
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-bottom: 18px;
+}
+
+.pdf-parties {
+  font-size: 0.76rem;
+  color: #334155;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 10px;
+  line-height: 1.6;
+}
+
+.pdf-clause {
+  margin-bottom: 12px;
+  font-size: 0.76rem;
+  line-height: 1.7;
+  color: #1e293b;
+}
+
+.pdf-clause-title {
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pdf-highlight {
+  background-color: rgba(254, 240, 138, 0.65);
+  border-bottom: 2px solid #ca8a04;
+  border-radius: 2px;
+  padding: 1px 4px;
+  font-weight: 600;
+  color: #854d0e;
+  transition: all 0.25s ease;
+  display: inline;
+}
+
+.pdf-highlight.active {
+  background-color: rgba(254, 202, 202, 0.85) !important;
+  border: 2px solid #ef4444 !important;
+  color: #991b1b !important;
+  border-radius: 4px;
+  padding: 2px 5px;
+  animation: flashHighlight 1.2s infinite alternate;
+}
+
+@keyframes flashHighlight {
+  0% { box-shadow: 0 0 2px rgba(239, 68, 68, 0.3); }
+  100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.75); }
+}
+
+.pdf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+  margin: 10px 0;
+}
+
+.pdf-table th {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  padding: 6px 8px;
+  font-weight: 700;
+  color: #334155;
+  text-align: left;
+}
+
+.pdf-table td {
+  border: 1px solid #e2e8f0;
+  padding: 5px 8px;
+  color: #475569;
+}
+
+.pdf-table tr.total-row td {
+  background: #f1f5f9;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pdf-seal {
+  width: 110px;
+  height: 110px;
+  border: 3px solid #dc2626;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-align: center;
+  transform: rotate(-12deg);
+  opacity: 0.85;
+  pointer-events: none;
+  user-select: none;
+  box-shadow: 0 0 6px rgba(220, 38, 38, 0.15);
+  line-height: 1.25;
+  padding: 6px;
+  position: relative;
+}
+
+.pdf-seal::before {
+  content: "★";
+  font-size: 1.1rem;
+  color: #dc2626;
+  margin-bottom: 2px;
+}

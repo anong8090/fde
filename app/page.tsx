@@ -68,6 +68,47 @@ export default function FdeEnterpriseApp() {
   const [attachments, setAttachments] = useState<AttachmentFile[]>(MOCK_CASES[0].attachments);
   const [workflowNodes, setWorkflowNodes] = useState<WorkflowNode[]>(MOCK_CASES[0].defaultWorkflow);
 
+  // 拟真合同原件预览舱：多附件切换、条款联动高亮与缩放
+  const [selectedAttachmentId, setSelectedAttachmentId] = useState<string>(MOCK_CASES[0].attachments[0]?.id || "");
+  const [activeHighlightKey, setActiveHighlightKey] = useState<string | null>(null);
+  const [zoomLevel, setZoomLevel] = useState<number>(100);
+
+  // 当前激活预览的合同附件原件
+  const activeAttachment = attachments.find((a) => a.id === selectedAttachmentId) || attachments[0] || MOCK_CASES[0].attachments[0];
+
+  // 联动穿透定位：点击业务申报要素或勾稽比对项，左侧合同舱自动切换原件并呼吸灯高亮对应条款
+  const handleLocateClause = (key: string) => {
+    setActiveHighlightKey(key);
+    // 自动寻找包含该 highlightKey 的附件并切换页签
+    const targetAtt = attachments.find((att) =>
+      att.clauses?.some((c) =>
+        c.highlightKey === key ||
+        (key === "risk_prepay" && (c.highlightKey === "payment" || c.highlightKey === "risk_prepay")) ||
+        (key === "risk_quality" && (c.highlightKey === "quality" || c.highlightKey === "risk_quality")) ||
+        (key === "risk_jurisdiction" && (c.highlightKey === "jurisdiction" || c.highlightKey === "risk_jurisdiction")) ||
+        (key === "amount" && c.highlightKey === "amount")
+      )
+    );
+    if (targetAtt && targetAtt.id !== selectedAttachmentId) {
+      setSelectedAttachmentId(targetAtt.id);
+    }
+
+    // 平滑滚动至左侧合同仓对应条款
+    setTimeout(() => {
+      const viewerBody = document.getElementById("fde-pdf-body");
+      if (viewerBody) {
+        const targetEl =
+          viewerBody.querySelector(`[data-highlight-key="${key}"]`) ||
+          viewerBody.querySelector(".pdf-highlight.active") ||
+          viewerBody.querySelector(".pdf-highlight") ||
+          document.getElementById(`clause-${key}`);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+    }, 120);
+  };
+
   // 分析与推演状态
   const [loading, setLoading] = useState<boolean>(false);
   const [analysisResult, setAnalysisResult] = useState<FdeAnalysisResult | null>(null);
@@ -207,6 +248,8 @@ export default function FdeEnterpriseApp() {
     const newAtts = JSON.parse(JSON.stringify(matchedCase.attachments));
     setFormData(newForm);
     setAttachments(newAtts);
+    setSelectedAttachmentId(newAtts[0]?.id || "");
+    setActiveHighlightKey(null);
     setDetailTab("REVIEW");
 
     // 还原历史反馈状态（如已反馈）
@@ -860,217 +903,619 @@ export default function FdeEnterpriseApp() {
               {/* 3. 审批意见反馈 (审批人意见与反馈业务系统)                          */}
               {/* ------------------------------------------------------------------- */}
               {detailTab === "REVIEW" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
-                  {/* --------------------------------------------------------------- */}
-                  {/* 1. 业务来源单据                                                  */}
-                  {/* --------------------------------------------------------------- */}
-                  <section className="glass-panel" style={{ padding: "18px 22px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", paddingBottom: "10px", borderBottom: "1px solid #f1f5f9" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <h2 style={{ fontSize: "0.98rem", fontWeight: 700, color: "#0f172a", margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
-                          <span>📋</span> 业务来源单据
-                        </h2>
-                        <span style={{ fontSize: "0.72rem", background: "#f1f5f9", color: "#475569", padding: "2px 8px", borderRadius: "4px", fontWeight: 600 }}>
-                          审查要素提炼
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", gap: "12px", fontSize: "0.75rem", color: "#64748b", alignItems: "center" }}>
-                        <span>来源系统：<strong style={{ color: "#0284c7" }}>{currentTask.sourceSystem}</strong></span>
-                        <span>·</span>
-                        <span>单据编号：<strong className="mono" style={{ color: "#334155" }}>{formData.id}</strong></span>
-                        <span>·</span>
-                        <span>推送时间：<strong className="mono" style={{ color: "#334155" }}>{currentTask.pushedAt}</strong></span>
-                        <span>·</span>
-                        <span>呈批部门：<strong style={{ color: "#334155" }}>{formData.department}</strong>（{formData.applicant}）</span>
-                      </div>
-                    </div>
+                  {/* =============================================================== */}
+                  {/* 首屏核心：左右双栏布局 (左：合同附件原件拟真预览；右：业务单据要素) */}
+                  {/* =============================================================== */}
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "1.15fr 1fr",
+                    gap: "18px",
+                    alignItems: "stretch"
+                  }}>
 
-                    {/* 精炼审查字段网格 (3列紧凑高密度布局) */}
-                    <div style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(3, 1fr)",
-                      gap: "1px",
-                      background: "#e2e8f0",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "6px",
-                      overflow: "hidden",
-                      marginBottom: "12px"
-                    }}>
-                      {/* 1. 合同标的与系统文号 */}
-                      <div style={{ background: "#ffffff", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginBottom: "3px" }}>合同名称及系统文号</div>
-                        <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0f172a", lineHeight: 1.3 }}>
-                          《{formData.contractTitle}》
-                        </div>
-                        <div className="mono" style={{ fontSize: "0.72rem", color: "#0284c7", marginTop: "2px" }}>
-                          {formData.contractNo} · <span style={{ color: "#64748b" }}>{formData.contractType}</span>
-                        </div>
-                      </div>
-
-                      {/* 2. 呈批申报总额 */}
-                      <div style={{ background: "#ffffff", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginBottom: "3px" }}>呈批申报总额</div>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
-                          <span className="mono" style={{ fontSize: "1.02rem", fontWeight: 700, color: formData.totalAmount >= 1000000 ? "#b45309" : "#0f172a" }}>
-                            ¥{formData.totalAmount.toLocaleString()} 元
+                    {/* ----------------------------------------------------------- */}
+                    {/* 左侧：合同附件拟真预览舱 (A4 拟真纸张、商密水印、条款高亮、红章) */}
+                    {/* ----------------------------------------------------------- */}
+                    <div id="fde-pdf-viewer" className="pdf-viewer-container" style={{ height: "680px" }}>
+                      {/* 原件顶部工具条：多附件切换 Tabs、缩放、OCR纯文本 */}
+                      <div className="pdf-viewer-header">
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", flex: 1 }}>
+                          <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#94a3b8", whiteSpace: "nowrap" }}>
+                            随附原件 ({attachments.length})：
                           </span>
-                          {formData.totalAmount >= 1000000 && (
-                            <span style={{ fontSize: "0.68rem", background: "#fef3c7", color: "#b45309", padding: "1px 6px", borderRadius: "3px", fontWeight: 700 }}>
-                              大额资金(≥100万)
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "2px" }}>
-                          {formData.totalAmountChinese}
-                        </div>
-                      </div>
-
-                      {/* 3. 签约双方主体资质 */}
-                      <div style={{ background: "#ffffff", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginBottom: "3px" }}>签约双方主体</div>
-                        <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          <span style={{ color: "#64748b", fontSize: "0.72rem" }}>甲方：</span>{formData.partyA}
-                        </div>
-                        <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#0284c7", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "2px" }}>
-                          <span style={{ color: "#64748b", fontSize: "0.72rem" }}>乙方：</span>{formData.supplierName}
-                          <span style={{ fontSize: "0.68rem", background: "#f1f5f9", color: "#475569", padding: "1px 5px", borderRadius: "3px", marginLeft: "6px", fontWeight: "normal" }}>
-                            资信 {formData.supplierCredit.creditRating}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* 4. 款项支付比例约定 */}
-                      <div style={{ background: "#ffffff", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginBottom: "3px" }}>款项支付比例约定</div>
-                        <div className="mono" style={{ fontSize: "0.82rem", fontWeight: 600, color: "#0f172a" }}>
-                          预付 <span style={{ color: formData.prepaymentRatio > 30 ? "#dc2626" : "#059669" }}>{formData.prepaymentRatio}%</span> / 进度款 {formData.progressPaymentRatio}% / 质保金 {formData.warrantyRatio}%
-                        </div>
-                        <div style={{ fontSize: "0.72rem", color: formData.prepaymentRatio > 30 ? "#dc2626" : "#64748b", marginTop: "2px" }}>
-                          {formData.prepaymentRatio > 30 ? "⚠️ 预付款超30%红线，需重点核验履约担保" : "符合国企预付款≤30%风控标准"}
-                        </div>
-                      </div>
-
-                      {/* 5. 发票类型与增值税率 */}
-                      <div style={{ background: "#ffffff", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginBottom: "3px" }}>发票类型与增值税率</div>
-                        <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "#0f172a" }}>
-                          {formData.taxRate}
-                        </div>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "2px" }}>
-                          用于发票合规与税目交叉核验
-                        </div>
-                      </div>
-
-                      {/* 6. 财务预算指标编号 */}
-                      <div style={{ background: "#ffffff", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginBottom: "3px" }}>财务预算指标编号</div>
-                        <div className="mono" style={{ fontSize: "0.82rem", fontWeight: 700, color: "#0284c7" }}>
-                          {formData.budgetCode}
-                        </div>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "2px" }}>
-                          归属年度科目：{formData.budgetSubject}
-                        </div>
-                      </div>
-
-                      {/* 7. 质量与验收标准 */}
-                      <div style={{ background: "#ffffff", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginBottom: "3px" }}>质量技术与验收标准</div>
-                        <div style={{ fontSize: "0.82rem", fontWeight: 600, color: formData.qualityStandard.includes("95%") ? "#dc2626" : "#0f172a" }}>
-                          {formData.qualityStandard}
-                        </div>
-                        <div style={{ fontSize: "0.72rem", color: formData.qualityStandard.includes("95%") ? "#dc2626" : "#64748b", marginTop: "2px" }}>
-                          {formData.qualityStandard.includes("95%") ? "⚠️ 抽检合格率95%可能存在放宽合规隐患" : "执行既定国家质量抽检标准"}
-                        </div>
-                      </div>
-
-                      {/* 8. 约定争议解决管辖 */}
-                      <div style={{ background: "#ffffff", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginBottom: "3px" }}>约定争议解决管辖</div>
-                        <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "#0f172a" }}>
-                          {formData.disputeJurisdiction}
-                        </div>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "2px" }}>
-                          法务排他性管辖条款审查
-                        </div>
-                      </div>
-
-                      {/* 9. “三重一大”前置审议纪要文号 */}
-                      <div style={{ background: "#ffffff", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginBottom: "3px" }}>“三重一大”前置审议纪要</div>
-                        <div style={{ fontSize: "0.82rem", fontWeight: 700, color: formData.hasMajorPartyResolution ? "#059669" : "#dc2626" }}>
-                          {formData.hasMajorPartyResolution ? (
-                            <span>✓ {formData.majorPartyResolutionNo}</span>
-                          ) : (
-                            <span>⚠️ 缺失党委会前置决议文号</span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "2px" }}>
-                          {formData.hasMajorPartyResolution ? "已完成集体决策前置审议程序" : "属于重大事项但未提供纪要凭证"}
-                        </div>
-                      </div>
-
-                      {/* 10. 约定履约交付周期 */}
-                      <div style={{ background: "#ffffff", padding: "10px 14px", gridColumn: "span 3" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div>
-                            <span style={{ fontSize: "0.72rem", color: "#64748b", marginRight: "8px" }}>约定履约交付周期：</span>
-                            <span className="mono" style={{ fontSize: "0.82rem", fontWeight: 600, color: "#0f172a" }}>
-                              {formData.deliveryStartDate} 至 {formData.deliveryEndDate}
-                            </span>
-                            <span style={{ fontSize: "0.72rem", color: "#64748b", marginLeft: "14px" }}>
-                              （交付地点：{formData.deliveryLocation}）
-                            </span>
-                          </div>
-                          <div style={{ fontSize: "0.72rem", color: "#0284c7" }}>
-                            已关联交期履约保证金监管
+                          <div style={{ display: "flex", gap: "6px", overflowX: "auto" }}>
+                            {attachments.map((att, idx) => {
+                              const isActive = activeAttachment.id === att.id;
+                              return (
+                                <button
+                                  key={att.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedAttachmentId(att.id);
+                                    setActiveHighlightKey(null);
+                                  }}
+                                  className={`pdf-attachment-tab ${isActive ? "active" : ""}`}
+                                  title={`点击切换查看：${att.name}`}
+                                >
+                                  <span style={{
+                                    fontSize: "0.64rem",
+                                    background: isActive ? "rgba(255,255,255,0.25)" : "#334155",
+                                    color: isActive ? "#ffffff" : "#94a3b8",
+                                    padding: "1px 5px",
+                                    borderRadius: "3px",
+                                    fontWeight: 700
+                                  }}>
+                                    {att.category || `附件${idx + 1}`}
+                                  </span>
+                                  <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {att.name}
+                                  </span>
+                                  <span style={{ fontSize: "0.64rem", opacity: 0.65 }}>({att.size})</span>
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    {/* 送审附件清单 (精简条状展示) */}
-                    <div style={{ background: "#f8fafc", padding: "8px 14px", borderRadius: "6px", border: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#475569" }}>
-                          送审随附原件 ({attachments.length} 份)：
-                        </span>
-                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                          {attachments.map((att) => (
+                        {/* 右侧缩放与原件状态 */}
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                          {activeHighlightKey && (
                             <button
-                              key={att.id}
                               type="button"
-                              onClick={() => setViewingAttachment(att)}
-                              title="点击穿透查验随附原件 OCR 结构化文本解析"
+                              onClick={() => setActiveHighlightKey(null)}
                               style={{
+                                fontSize: "0.68rem",
+                                background: "#7f1d1d",
+                                color: "#fecaca",
+                                border: "1px solid #ef4444",
+                                padding: "2px 8px",
+                                borderRadius: "4px",
+                                cursor: "pointer",
                                 display: "flex",
                                 alignItems: "center",
-                                gap: "6px",
-                                padding: "3px 8px",
-                                background: "#ffffff",
-                                border: "1px solid #0284c7",
-                                borderRadius: "4px",
-                                fontSize: "0.74rem",
-                                cursor: "pointer",
-                                boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+                                gap: "4px"
                               }}
                             >
-                              <span style={{ fontWeight: 600, color: "#0f172a" }}>📄 {att.name}</span>
-                              <span style={{ color: "#64748b", fontSize: "0.68rem" }}>({att.size})</span>
-                              <span style={{ color: "#059669", fontSize: "0.68rem", fontWeight: 600 }}>✓ OCR解析完成</span>
-                              <span style={{ fontSize: "0.66rem", color: "#0284c7", background: "#f0f9ff", padding: "1px 5px", borderRadius: "3px", fontWeight: 600 }}>
-                                穿透查验原件 ➔
-                              </span>
+                              <span>✕</span> 清除定位
                             </button>
-                          ))}
+                          )}
+                          <div style={{ display: "flex", alignItems: "center", gap: "2px", background: "#0f172a", padding: "2px 6px", borderRadius: "4px", border: "1px solid #334155" }}>
+                            <button
+                              type="button"
+                              onClick={() => setZoomLevel((z) => Math.max(80, z - 10))}
+                              style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "0.82rem", padding: "0 4px" }}
+                              title="缩小"
+                            >
+                              -
+                            </button>
+                            <span className="mono" style={{ fontSize: "0.7rem", color: "#e2e8f0", minWidth: "34px", textAlign: "center" }}>
+                              {zoomLevel}%
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setZoomLevel((z) => Math.min(125, z + 10))}
+                              style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "0.82rem", padding: "0 4px" }}
+                              title="放大"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setViewingAttachment(activeAttachment)}
+                            className="btn-secondary"
+                            style={{ padding: "3px 8px", fontSize: "0.7rem", background: "#1e293b", borderColor: "#475569", color: "#e2e8f0" }}
+                            title="穿透查验随附原件 OCR 版面识别纯文本"
+                          >
+                            OCR切片 ➔
+                          </button>
                         </div>
                       </div>
-                      <div style={{ fontSize: "0.72rem", color: "#64748b" }}>
-                        附件要素已由系统自动解析提取，并与上述单据字段完成智能勾稽
+
+                      {/* 拟真合同原件内容区 (深底座 + 纯白 A4 拟真纸张) */}
+                      <div id="fde-pdf-body" className="pdf-document-body">
+                        <div
+                          className="pdf-page-mock"
+                          style={{
+                            transform: `scale(${zoomLevel / 100})`,
+                            transformOrigin: "top center",
+                            transition: "transform 0.2s ease"
+                          }}
+                        >
+                          {/* 商密防伪水印 */}
+                          <div className="pdf-watermark">
+                            中润农垦商密防伪 · 业务专用
+                          </div>
+
+                          {/* 合同大标题与系统文号 */}
+                          <div className="pdf-contract-title">
+                            《{activeAttachment.docTitle || activeAttachment.name.replace(".pdf", "")}》
+                          </div>
+                          <div className="pdf-contract-subtitle mono">
+                            {activeAttachment.docSubtitle || `合同编号：${formData.contractNo} · 内部业务档案件`}
+                          </div>
+
+                          {/* 签约双方主体 */}
+                          <div className="pdf-parties">
+                            <div>
+                              <strong>甲方（采购/发包方）：</strong>
+                              {activeAttachment.partyA || formData.partyA}
+                            </div>
+                            <div style={{ marginTop: "4px" }}>
+                              <strong>乙方（供货/承接方）：</strong>
+                              {activeAttachment.partyB || formData.supplierName}
+                              {formData.supplierCredit && (
+                                <span style={{ fontSize: "0.68rem", color: "#0284c7", marginLeft: "8px" }}>
+                                  (统一代码：{formData.supplierCredit.creditCode})
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* 表格类附件渲染 (如明细表、理化检验清单) */}
+                          {activeAttachment.tableData && (
+                            <div style={{ marginBottom: "16px" }}>
+                              <table className="pdf-table">
+                                <thead>
+                                  <tr>
+                                    {activeAttachment.tableData.headers.map((h, i) => (
+                                      <th key={i}>{h}</th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {activeAttachment.tableData.rows.map((row, rIdx) => (
+                                    <tr key={rIdx}>
+                                      {row.map((cell, cIdx) => (
+                                        <td key={cIdx} className={cIdx === 0 || typeof cell === "number" ? "mono" : ""}>
+                                          {cell}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  ))}
+                                  {activeAttachment.tableData.totalRow && (
+                                    <tr className="total-row">
+                                      {activeAttachment.tableData.totalRow.map((cell, cIdx) => (
+                                        <td key={cIdx} className={cIdx === 0 || typeof cell === "number" ? "mono" : ""}>
+                                          {cell}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+
+                          {/* 条款清单渲染 (主合同、技术附录、补充协议) */}
+                          {activeAttachment.clauses && activeAttachment.clauses.length > 0 && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                              {activeAttachment.clauses.map((c) => {
+                                const isKeyActive =
+                                  activeHighlightKey === c.highlightKey ||
+                                  (activeHighlightKey === "risk_prepay" && (c.highlightKey === "payment" || c.highlightKey === "risk_prepay")) ||
+                                  (activeHighlightKey === "risk_quality" && (c.highlightKey === "quality" || c.highlightKey === "risk_quality")) ||
+                                  (activeHighlightKey === "risk_jurisdiction" && (c.highlightKey === "jurisdiction" || c.highlightKey === "risk_jurisdiction")) ||
+                                  (activeHighlightKey === "amount" && c.highlightKey === "amount");
+                                return (
+                                  <div
+                                    key={c.id}
+                                    id={`clause-${c.highlightKey || c.id}`}
+                                    data-highlight-key={c.highlightKey}
+                                    className={`pdf-clause ${isKeyActive ? "active" : ""}`}
+                                    style={{
+                                      padding: isKeyActive ? "8px 10px" : "4px 6px",
+                                      borderRadius: "4px",
+                                      background: isKeyActive ? "rgba(254, 242, 242, 0.65)" : "transparent",
+                                      borderLeft: isKeyActive ? "3px solid #ef4444" : "3px solid transparent",
+                                      transition: "all 0.25s ease"
+                                    }}
+                                  >
+                                    <div className="pdf-clause-title">
+                                      <span style={{ color: isKeyActive ? "#dc2626" : "#0f172a" }}>
+                                        {c.num} · {c.title}
+                                      </span>
+                                      {c.isRisk && (
+                                        <span style={{
+                                          fontSize: "0.65rem",
+                                          background: "#fef2f2",
+                                          color: "#dc2626",
+                                          border: "1px solid #fecaca",
+                                          padding: "1px 6px",
+                                          borderRadius: "3px",
+                                          fontWeight: 700
+                                        }}>
+                                          ⚠️ 违背内控红线
+                                        </span>
+                                      )}
+                                      {!c.isRisk && c.riskBadge && (
+                                        <span style={{
+                                          fontSize: "0.65rem",
+                                          background: "#ecfdf5",
+                                          color: "#059669",
+                                          border: "1px solid #a7f3d0",
+                                          padding: "1px 6px",
+                                          borderRadius: "3px",
+                                          fontWeight: 700
+                                        }}>
+                                          ✓ {c.riskBadge}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div style={{ color: "#334155", textAlign: "justify" }}>
+                                      {/* 智能高亮核心要素词句 */}
+                                      {c.highlightValue && c.content.includes(c.highlightValue) ? (
+                                        (() => {
+                                          const parts = c.content.split(c.highlightValue);
+                                          return (
+                                            <span>
+                                              {parts[0]}
+                                              <span
+                                                className={`pdf-highlight ${isKeyActive ? "active" : ""}`}
+                                                data-highlight-key={c.highlightKey}
+                                              >
+                                                {c.highlightValue}
+                                              </span>
+                                              {parts.slice(1).join(c.highlightValue)}
+                                            </span>
+                                          );
+                                        })()
+                                      ) : (
+                                        <span>{c.content}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* 资质证明类文档排版 */}
+                          {activeAttachment.category === "资质证明" && (
+                            <div style={{
+                              border: "2px solid #cbd5e1",
+                              borderRadius: "6px",
+                              padding: "20px",
+                              background: "#f8fafc",
+                              marginTop: "12px",
+                              fontSize: "0.76rem"
+                            }}>
+                              <div style={{ textAlign: "center", fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", marginBottom: "12px" }}>
+                                🏛️ 营业执照 (副本) 与食品生产许可备案
+                              </div>
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", lineHeight: 1.6 }}>
+                                <div>统一社会信用代码：<span className="mono" style={{ fontWeight: 700, color: "#0284c7" }}>{formData.supplierCredit.creditCode}</span></div>
+                                <div>法定代表人：<strong>{formData.supplierCredit.legalPerson}</strong></div>
+                                <div>注册资本：<strong>{formData.supplierCredit.registeredCapital}</strong></div>
+                                <div>资信合规评级：<span style={{ color: "#059669", fontWeight: 700 }}>AAA 级战略优选</span></div>
+                                <div style={{ gridColumn: "span 2" }}>许可生产范围：食用植物油脂大宗原油加工生产、精炼分装及配送</div>
+                                <div style={{ gridColumn: "span 2", color: "#64748b" }}>发证机构：江苏省市场监督管理局 · 状态：存续在营</div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 底部盖章与日期落款 */}
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "32px", paddingTop: "16px", borderTop: "1px dashed #e2e8f0" }}>
+                            <div style={{ fontSize: "0.72rem", color: "#64748b" }}>
+                              <div>原件存档位置：中润农垦集团合同档案库</div>
+                              <div className="mono" style={{ marginTop: "2px" }}>SHA256: 8a4f91b7...c02e190d</div>
+                              <div style={{ marginTop: "2px" }}>签约日期：{activeAttachment.signDate || "2026年09月05日"}</div>
+                            </div>
+
+                            {/* 拟真红色公章 */}
+                            <div className="pdf-seal">
+                              <div style={{ padding: "0 4px" }}>
+                                {activeAttachment.sealText || `${formData.supplierName} 业务专用章`}
+                              </div>
+                              <div style={{ fontSize: "0.52rem", opacity: 0.8, marginTop: "2px" }}>
+                                电子签章认证有效
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                  </section>
+                    {/* ----------------------------------------------------------- */}
+                    {/* 右侧：业务来源单据 (10 项要素提炼、送审流程与来源中台)             */}
+                    {/* ----------------------------------------------------------- */}
+                    <div className="glass-panel" style={{ padding: "18px 20px", display: "flex", flexDirection: "column", height: "680px", overflowY: "auto" }}>
+                      {/* 单据头部 */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", paddingBottom: "10px", borderBottom: "1px solid #f1f5f9" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <h2 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0f172a", margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span>📋</span> 业务来源单据
+                          </h2>
+                          <span style={{ fontSize: "0.7rem", background: "#f1f5f9", color: "#475569", padding: "1px 7px", borderRadius: "4px", fontWeight: 600 }}>
+                            10 项要素提炼
+                          </span>
+                        </div>
+                        <div style={{ fontSize: "0.72rem", color: "#64748b" }}>
+                          来源：<strong style={{ color: "#0284c7" }}>{currentTask.sourceSystem}</strong> · 编号：<span className="mono" style={{ color: "#334155" }}>{formData.id}</span>
+                        </div>
+                      </div>
+
+                      {/* 联动穿透提示条 */}
+                      <div style={{
+                        background: "#f0f9ff",
+                        border: "1px solid #bae6fd",
+                        borderRadius: "6px",
+                        padding: "6px 10px",
+                        marginBottom: "10px",
+                        fontSize: "0.72rem",
+                        color: "#0369a1",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between"
+                      }}>
+                        <span>💡 点击带 🔍 标识要素，左侧合同舱将联动切换原件并高亮对应条款</span>
+                        <span style={{ fontSize: "0.68rem", color: "#64748b" }}>审查分析在首屏下方 ↓</span>
+                      </div>
+
+                      {/* 10 项要素网格 (2列紧凑排版) */}
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, 1fr)",
+                        gap: "8px",
+                        marginBottom: "12px"
+                      }}>
+                        {/* 1. 合同标的与文号 */}
+                        <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "8px 12px", gridColumn: "span 2" }}>
+                          <div style={{ fontSize: "0.7rem", color: "#64748b", marginBottom: "2px" }}>合同名称及系统文号</div>
+                          <div style={{ fontSize: "0.84rem", fontWeight: 700, color: "#0f172a" }}>
+                            《{formData.contractTitle}》
+                          </div>
+                          <div className="mono" style={{ fontSize: "0.72rem", color: "#0284c7", marginTop: "2px" }}>
+                            {formData.contractNo} · <span style={{ color: "#64748b" }}>{formData.contractType}</span>
+                          </div>
+                        </div>
+
+                        {/* 2. 呈批申报总额 (可点击穿透) */}
+                        <div
+                          id="locate-card-amount"
+                          onClick={() => handleLocateClause("amount")}
+                          style={{
+                            background: activeHighlightKey === "amount" ? "#eff6ff" : "#ffffff",
+                            border: `1px solid ${activeHighlightKey === "amount" ? "#0284c7" : "#e2e8f0"}`,
+                            borderRadius: "6px",
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease"
+                          }}
+                          title="点击穿透高亮左侧合同金额条款"
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontSize: "0.7rem", color: "#64748b" }}>呈批申报总额</span>
+                            <span style={{ fontSize: "0.66rem", color: "#0284c7" }}>🔍 联动条款</span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginTop: "2px" }}>
+                            <span className="mono" style={{ fontSize: "0.98rem", fontWeight: 700, color: formData.totalAmount >= 1000000 ? "#b45309" : "#0f172a" }}>
+                              ¥{formData.totalAmount.toLocaleString()} 元
+                            </span>
+                            {formData.totalAmount >= 1000000 && (
+                              <span style={{ fontSize: "0.65rem", background: "#fef3c7", color: "#b45309", padding: "1px 5px", borderRadius: "3px", fontWeight: 700 }}>
+                                大额资金
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: "0.68rem", color: "#64748b", marginTop: "1px" }}>
+                            {formData.totalAmountChinese}
+                          </div>
+                        </div>
+
+                        {/* 3. 签约双方主体资质 */}
+                        <div
+                          id="locate-card-supplier"
+                          onClick={() => handleLocateClause("supplier")}
+                          style={{
+                            background: "#ffffff",
+                            border: "1px solid #e2e8f0",
+                            borderRadius: "6px",
+                            padding: "8px 12px",
+                            cursor: "pointer"
+                          }}
+                          title="点击穿透查验主体与资质证明"
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontSize: "0.7rem", color: "#64748b" }}>签约相对方</span>
+                            <span style={{ fontSize: "0.66rem", color: "#0284c7" }}>🔍 资质原件</span>
+                          </div>
+                          <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "2px" }}>
+                            {formData.supplierName}
+                          </div>
+                          <div style={{ fontSize: "0.68rem", color: "#64748b", marginTop: "2px", display: "flex", gap: "6px", alignItems: "center" }}>
+                            <span>资信：<strong style={{ color: "#059669" }}>{formData.supplierCredit.creditRating}</strong></span>
+                            <span>·</span>
+                            <span>法人：{formData.supplierCredit.legalPerson}</span>
+                          </div>
+                        </div>
+
+                        {/* 4. 款项支付比例约定 (可点击穿透) */}
+                        <div
+                          id="locate-card-prepay"
+                          onClick={() => handleLocateClause("risk_prepay")}
+                          style={{
+                            background: activeHighlightKey === "risk_prepay" ? "#fef2f2" : "#ffffff",
+                            border: `1px solid ${activeHighlightKey === "risk_prepay" ? "#ef4444" : "#e2e8f0"}`,
+                            borderRadius: "6px",
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease"
+                          }}
+                          title="点击穿透高亮左侧结算条款"
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontSize: "0.7rem", color: "#64748b" }}>款项支付比例约定</span>
+                            <span style={{ fontSize: "0.66rem", color: "#0284c7" }}>🔍 联动条款</span>
+                          </div>
+                          <div className="mono" style={{ fontSize: "0.8rem", fontWeight: 600, color: "#0f172a", marginTop: "2px" }}>
+                            预付 <span style={{ color: formData.prepaymentRatio > 30 ? "#dc2626" : "#059669" }}>{formData.prepaymentRatio}%</span> / 进度款 {formData.progressPaymentRatio}% / 质保金 {formData.warrantyRatio}%
+                          </div>
+                          <div style={{ fontSize: "0.68rem", color: formData.prepaymentRatio > 30 ? "#dc2626" : "#64748b", marginTop: "2px" }}>
+                            {formData.prepaymentRatio > 30 ? "⚠️ 预付款超30%红线" : "符合国企≤30%风控标准"}
+                          </div>
+                        </div>
+
+                        {/* 5. 发票类型与增值税率 */}
+                        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "8px 12px" }}>
+                          <div style={{ fontSize: "0.7rem", color: "#64748b", marginBottom: "2px" }}>发票类型与增值税率</div>
+                          <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#0f172a" }}>
+                            {formData.taxRate}
+                          </div>
+                          <div style={{ fontSize: "0.68rem", color: "#64748b", marginTop: "2px" }}>
+                            税目与计价勾稽核验无误
+                          </div>
+                        </div>
+
+                        {/* 6. 财务预算指标编号 */}
+                        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "8px 12px" }}>
+                          <div style={{ fontSize: "0.7rem", color: "#64748b", marginBottom: "2px" }}>财务预算指标</div>
+                          <div className="mono" style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0284c7" }}>
+                            {formData.budgetCode}
+                          </div>
+                          <div style={{ fontSize: "0.68rem", color: "#64748b", marginTop: "2px" }}>
+                            {formData.budgetSubject}
+                          </div>
+                        </div>
+
+                        {/* 7. 质量技术与验收标准 (可点击穿透) */}
+                        <div
+                          id="locate-card-quality"
+                          onClick={() => handleLocateClause("risk_quality")}
+                          style={{
+                            background: activeHighlightKey === "risk_quality" ? "#fef2f2" : "#ffffff",
+                            border: `1px solid ${activeHighlightKey === "risk_quality" ? "#ef4444" : "#e2e8f0"}`,
+                            borderRadius: "6px",
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease"
+                          }}
+                          title="点击穿透高亮左侧质检验收标准条款"
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontSize: "0.7rem", color: "#64748b" }}>质量与验收标准</span>
+                            <span style={{ fontSize: "0.66rem", color: "#0284c7" }}>🔍 联动条款</span>
+                          </div>
+                          <div style={{ fontSize: "0.76rem", fontWeight: 600, color: formData.qualityStandard.includes("95%") ? "#dc2626" : "#0f172a", marginTop: "2px" }}>
+                            {formData.qualityStandard}
+                          </div>
+                          <div style={{ fontSize: "0.68rem", color: formData.qualityStandard.includes("95%") ? "#dc2626" : "#64748b", marginTop: "2px" }}>
+                            {formData.qualityStandard.includes("95%") ? "⚠️ 合格率95%偏离内控底线" : "符合国家/行业抽检标准"}
+                          </div>
+                        </div>
+
+                        {/* 8. 约定争议解决管辖 (可点击穿透) */}
+                        <div
+                          id="locate-card-jurisdiction"
+                          onClick={() => handleLocateClause("risk_jurisdiction")}
+                          style={{
+                            background: activeHighlightKey === "risk_jurisdiction" ? "#eff6ff" : "#ffffff",
+                            border: `1px solid ${activeHighlightKey === "risk_jurisdiction" ? "#0284c7" : "#e2e8f0"}`,
+                            borderRadius: "6px",
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease"
+                          }}
+                          title="点击穿透高亮左侧争议管辖条款"
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontSize: "0.7rem", color: "#64748b" }}>约定争议解决管辖</span>
+                            <span style={{ fontSize: "0.66rem", color: "#0284c7" }}>🔍 联动条款</span>
+                          </div>
+                          <div style={{ fontSize: "0.76rem", fontWeight: 600, color: "#0f172a", marginTop: "2px" }}>
+                            {formData.disputeJurisdiction}
+                          </div>
+                          <div style={{ fontSize: "0.68rem", color: "#64748b", marginTop: "2px" }}>
+                            排他性司法管辖条款审核
+                          </div>
+                        </div>
+
+                        {/* 9. “三重一大”前置审议纪要文号 */}
+                        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "8px 12px" }}>
+                          <div style={{ fontSize: "0.7rem", color: "#64748b", marginBottom: "2px" }}>“三重一大”前置审议</div>
+                          <div style={{ fontSize: "0.78rem", fontWeight: 700, color: formData.hasMajorPartyResolution ? "#059669" : "#dc2626" }}>
+                            {formData.hasMajorPartyResolution ? (
+                              <span>✓ {formData.majorPartyResolutionNo}</span>
+                            ) : (
+                              <span>⚠️ 缺失党委会前置决议文号</span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: "0.68rem", color: "#64748b", marginTop: "2px" }}>
+                            {formData.hasMajorPartyResolution ? "已完成集体决策前置审议程序" : "属于大额事项但未提供纪要凭证"}
+                          </div>
+                        </div>
+
+                        {/* 10. 约定履约交付周期 */}
+                        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "8px 12px", gridColumn: "span 2" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div>
+                              <span style={{ fontSize: "0.7rem", color: "#64748b", marginRight: "6px" }}>履约周期：</span>
+                              <span className="mono" style={{ fontSize: "0.78rem", fontWeight: 600, color: "#0f172a" }}>
+                                {formData.deliveryStartDate} 至 {formData.deliveryEndDate}
+                              </span>
+                              <span style={{ fontSize: "0.7rem", color: "#64748b", marginLeft: "10px" }}>
+                                （地点：{formData.deliveryLocation}）
+                              </span>
+                            </div>
+                            <span style={{ fontSize: "0.68rem", color: "#0284c7" }}>履约保证金监管已关联</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 送审附件切换快捷区 (固定在右栏底部) */}
+                      <div style={{
+                        marginTop: "auto",
+                        background: "#f8fafc",
+                        padding: "10px 12px",
+                        borderRadius: "6px",
+                        border: "1px solid #e2e8f0"
+                      }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                          <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#475569" }}>
+                            送审随附原件 ({attachments.length} 份)：
+                          </span>
+                          <span style={{ fontSize: "0.68rem", color: "#059669" }}>✓ OCR 版面切分提取完成</span>
+                        </div>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                          {attachments.map((att, idx) => {
+                            const isCur = activeAttachment.id === att.id;
+                            return (
+                              <button
+                                key={att.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedAttachmentId(att.id);
+                                  setActiveHighlightKey(null);
+                                }}
+                                style={{
+                                  padding: "4px 8px",
+                                  borderRadius: "4px",
+                                  border: isCur ? "1.5px solid #0284c7" : "1px solid #cbd5e1",
+                                  background: isCur ? "#e0f2fe" : "#ffffff",
+                                  color: isCur ? "#0369a1" : "#334155",
+                                  fontSize: "0.72rem",
+                                  fontWeight: isCur ? 700 : 500,
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px"
+                                }}
+                              >
+                                <span>{isCur ? "▶" : "📄"}</span>
+                                <span style={{ maxWidth: "130px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {att.name}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
 
                   {/* --------------------------------------------------------------- */}
                   {/* 2. 智能审查分析                                                  */}
@@ -1166,7 +1611,7 @@ export default function FdeEnterpriseApp() {
                               <th>附件抽取值</th>
                               <th style={{ width: "100px" }}>比对结论</th>
                               <th>差异分析</th>
-                              <th style={{ width: "100px", textAlign: "right" }}>原件证据链</th>
+                              <th style={{ width: "160px", textAlign: "right" }}>原件比对证据链</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1184,22 +1629,49 @@ export default function FdeEnterpriseApp() {
                                 </td>
                                 <td style={{ fontSize: "0.78rem", color: "#64748b" }}>{item.detail}</td>
                                 <td style={{ textAlign: "right" }}>
-                                  <button
-                                    type="button"
-                                    onClick={() => setViewingEvidenceItem(item)}
-                                    style={{
-                                      fontSize: "0.72rem",
-                                      padding: "2px 8px",
-                                      background: "#ffffff",
-                                      border: "1px solid #0284c7",
-                                      borderRadius: "4px",
-                                      color: "#0284c7",
-                                      fontWeight: 600,
-                                      cursor: "pointer"
-                                    }}
-                                  >
-                                    🔍 条款溯源
-                                  </button>
+                                  <div style={{ display: "inline-flex", gap: "4px", justifyContent: "flex-end" }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        let key = "amount";
+                                        if (item.fieldName.includes("金额") || item.fieldName.includes("申报")) key = "amount";
+                                        else if (item.fieldName.includes("预付") || item.fieldName.includes("款项")) key = "risk_prepay";
+                                        else if (item.fieldName.includes("质量") || item.fieldName.includes("验收")) key = "risk_quality";
+                                        else if (item.fieldName.includes("管辖") || item.fieldName.includes("争议")) key = "risk_jurisdiction";
+                                        else if (item.fieldName.includes("主体") || item.fieldName.includes("供方")) key = "supplier";
+                                        handleLocateClause(key);
+                                      }}
+                                      style={{
+                                        fontSize: "0.72rem",
+                                        padding: "2px 7px",
+                                        background: "#f0f9ff",
+                                        border: "1px solid #0284c7",
+                                        borderRadius: "4px",
+                                        color: "#0284c7",
+                                        fontWeight: 600,
+                                        cursor: "pointer"
+                                      }}
+                                      title="切换并高亮左侧原件中对应的合同条款"
+                                    >
+                                      🔍 定位原件
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setViewingEvidenceItem(item)}
+                                      style={{
+                                        fontSize: "0.72rem",
+                                        padding: "2px 7px",
+                                        background: "#ffffff",
+                                        border: "1px solid #cbd5e1",
+                                        borderRadius: "4px",
+                                        color: "#475569",
+                                        cursor: "pointer"
+                                      }}
+                                      title="查看该项要素抽取证据链详情"
+                                    >
+                                      证据链
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             ))}

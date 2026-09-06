@@ -120,6 +120,7 @@ export interface AttachmentFile {
   name: string;
   size: string;
   type: string;
+  category?: "主合同" | "明细表" | "资质证明" | "技术附录";
   ocrExtractedText: string;
   extractedFields: {
     contractAmount?: number;
@@ -130,6 +131,27 @@ export interface AttachmentFile {
     disputeJurisdiction?: string;
     taxRate?: string;
   };
+  docTitle?: string;
+  docSubtitle?: string;
+  partyA?: string;
+  partyB?: string;
+  clauses?: {
+    id: string;
+    num: string;
+    title: string;
+    content: string;
+    highlightKey?: string;
+    highlightValue?: string;
+    isRisk?: boolean;
+    riskBadge?: string;
+  }[];
+  tableData?: {
+    headers: string[];
+    rows: (string | number)[][];
+    totalRow?: (string | number)[];
+  };
+  signDate?: string;
+  sealText?: string;
 }
 
 export interface CrossCheckItem {
