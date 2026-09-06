@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   ApprovalFormData,
   AttachmentFile,
@@ -151,29 +151,68 @@ const formatPipelineTime = (seconds: number) => {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 };
 
+const getInitialUrlState = () => {
+  if (typeof window === "undefined") {
+    return {
+      nav: "TASK_LIST" as const,
+      tab: "REVIEW" as const,
+      caseId: null as string | null,
+      signed: false,
+      scroll: null as string | null
+    };
+  }
+  const params = new URLSearchParams(window.location.search);
+  const caseId = params.get("case");
+  const view = params.get("view");
+  const tab = params.get("tab") === "AUDIT_LOG" ? ("AUDIT_LOG" as const) : ("REVIEW" as const);
+  const signed = params.get("signed") === "true";
+  const scroll = params.get("scroll");
+  let nav: "TASK_LIST" | "DETAIL_VIEW" | "KNOWLEDGE_BASE" | "AUDIT_LEDGER" = "TASK_LIST";
+  if (caseId) {
+    nav = "DETAIL_VIEW";
+  } else if (view === "KNOWLEDGE_BASE" || view === "AUDIT_LEDGER" || view === "DETAIL_VIEW" || view === "TASK_LIST") {
+    nav = view;
+  }
+  return { nav, tab, caseId, signed, scroll };
+};
+
 export default function FdeEnterpriseApp() {
+  const initialUrl = useMemo(() => getInitialUrlState(), []);
+  const initialCase = useMemo(() => {
+    if (initialUrl.caseId) {
+      return MOCK_CASES.find((c) => c.id === initialUrl.caseId) || MOCK_CASES[0];
+    }
+    return MOCK_CASES[0];
+  }, [initialUrl]);
+  const initialTask = useMemo(() => {
+    if (initialUrl.caseId) {
+      return INITIAL_PUSH_TASKS.find((t) => t.id === initialUrl.caseId) || INITIAL_PUSH_TASKS[0];
+    }
+    return INITIAL_PUSH_TASKS[0];
+  }, [initialUrl]);
+
   // 全局宏观主菜单：待办审批、已办台账、规章制度库
-  const [globalNav, setGlobalNav] = useState<"TASK_LIST" | "DETAIL_VIEW" | "KNOWLEDGE_BASE" | "AUDIT_LEDGER">("TASK_LIST");
+  const [globalNav, setGlobalNav] = useState<"TASK_LIST" | "DETAIL_VIEW" | "KNOWLEDGE_BASE" | "AUDIT_LEDGER">(initialUrl.nav);
 
   // 详情页内部页签：1. 业务审查核批 (3 大板块)；2. AI 审计推演日志 (面向客户化)
-  const [detailTab, setDetailTab] = useState<"REVIEW" | "AUDIT_LOG">("REVIEW");
+  const [detailTab, setDetailTab] = useState<"REVIEW" | "AUDIT_LOG">(initialUrl.tab);
 
   // 待办任务池
   const [tasks, setTasks] = useState<PushTaskItem[]>(INITIAL_PUSH_TASKS);
 
   // 当前呈批单据数据
-  const [currentTask, setCurrentTask] = useState<PushTaskItem>(INITIAL_PUSH_TASKS[0]);
-  const [formData, setFormData] = useState<ApprovalFormData>(MOCK_CASES[0].formData);
-  const [attachments, setAttachments] = useState<AttachmentFile[]>(MOCK_CASES[0].attachments);
-  const [workflowNodes, setWorkflowNodes] = useState<WorkflowNode[]>(MOCK_CASES[0].defaultWorkflow);
+  const [currentTask, setCurrentTask] = useState<PushTaskItem>(initialTask);
+  const [formData, setFormData] = useState<ApprovalFormData>(initialCase.formData);
+  const [attachments, setAttachments] = useState<AttachmentFile[]>(initialCase.attachments);
+  const [workflowNodes, setWorkflowNodes] = useState<WorkflowNode[]>(initialCase.defaultWorkflow);
 
   // 拟真合同原件预览舱：多附件切换、条款联动高亮与缩放
-  const [selectedAttachmentId, setSelectedAttachmentId] = useState<string>(MOCK_CASES[0].attachments[0]?.id || "");
+  const [selectedAttachmentId, setSelectedAttachmentId] = useState<string>(initialCase.attachments[0]?.id || "");
   const [activeHighlightKey, setActiveHighlightKey] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
 
   // 当前激活预览的合同附件原件
-  const activeAttachment = attachments.find((a) => a.id === selectedAttachmentId) || attachments[0] || MOCK_CASES[0].attachments[0];
+  const activeAttachment = attachments.find((a) => a.id === selectedAttachmentId) || attachments[0] || initialCase.attachments[0];
 
   // 联动穿透定位：点击业务申报要素或勾稽比对项，左侧合同舱自动切换原件并呼吸灯高亮对应条款
   const handleLocateClause = (key: string) => {
@@ -208,15 +247,26 @@ export default function FdeEnterpriseApp() {
     }, 120);
   };
 
+  const initialAnalysis = useMemo(() => {
+    return runFdeAnalysis(initialCase.formData, initialCase.attachments);
+  }, [initialCase]);
+
   // 分析与推演状态
   const [loading, setLoading] = useState<boolean>(false);
-  const [analysisResult, setAnalysisResult] = useState<FdeAnalysisResult | null>(null);
-  const [traceSteps, setTraceSteps] = useState<FdeAgentTraceStep[]>([]);
-  const [logs, setLogs] = useState<string[]>([]);
+  const [analysisResult, setAnalysisResult] = useState<FdeAnalysisResult | null>(initialAnalysis.result);
+  const [traceSteps, setTraceSteps] = useState<FdeAgentTraceStep[]>(initialAnalysis.traceSteps);
+  const [logs, setLogs] = useState<string[]>(initialAnalysis.logs);
 
   // 板块三：当前审批人（严格仅限赵志远本人）专属签批表单状态
-  const [approvalVerdict, setApprovalVerdict] = useState<"APPROVED" | "REQUIRE_SUPPLEMENT" | "REJECT">("APPROVED");
-  const [humanReviewNote, setHumanReviewNote] = useState<string>("");
+  const [approvalVerdict, setApprovalVerdict] = useState<"APPROVED" | "REQUIRE_SUPPLEMENT" | "REJECT">(() => {
+    return initialAnalysis.result.overallVerdict === "HIGH_RISK_WARNING" ? "REJECT" : "REQUIRE_SUPPLEMENT";
+  });
+  const [humanReviewNote, setHumanReviewNote] = useState<string>(() => {
+    if (initialAnalysis.result.overallVerdict === "HIGH_RISK_WARNING") {
+      return "【坚决否决退回】：经审查，合同约定 95% 出厂合格率严重违背集团《食品质量合规规范》99.8% 底线且免除第三方 CMA 报告。坚决否决，请研发中心立即退回并启动备选供方评审。";
+    }
+    return "【退回补正材料】：经审查，呈批单申报金额与附件清单存在 5 万元勾稽差额，且未附党委会“三重一大”前置纪要文号，请经办人与财务处核实补齐后重新报审。";
+  });
   const [ackCompliance, setAckCompliance] = useState<boolean>(true);
   const [signedCertificate, setSignedCertificate] = useState<{
     signTime: string;
@@ -225,7 +275,20 @@ export default function FdeEnterpriseApp() {
     verdictLabel: string;
     callbackTicket: string;
     sourceSystem: string;
-  } | null>(null);
+  } | null>(() => {
+    if (initialUrl.signed) {
+      const cId = initialUrl.caseId || "REQ-202609-001";
+      return {
+        signTime: "2026-09-05 20:50:18",
+        certNo: `CFCA-SOE-2026-${cId.replace("REQ-", "")}`,
+        sm2Hash: "SM2_SIG_E7B492A08C14F3D69A1C50B3E84F17DA810C29E4",
+        verdictLabel: "退回补正",
+        callbackTicket: `ACK-OA-20260905-${cId.replace("REQ-", "")}`,
+        sourceSystem: initialTask.sourceSystem || "OA协同办公系统"
+      };
+    }
+    return null;
+  });
 
   // 节点历史意见查看弹窗
   const [viewingNodeOpinion, setViewingNodeOpinion] = useState<WorkflowNode | null>(null);
